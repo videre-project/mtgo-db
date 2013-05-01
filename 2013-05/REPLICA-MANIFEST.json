@@ -1,0 +1,270 @@
+{
+  "month": "2013-05",
+  "generated_at": "2026-07-12T21:17:59.452Z",
+  "source": "postgres-replica-prod",
+  "format": "csv",
+  "compression": 9,
+  "profiles": [
+    "cards",
+    "events"
+  ],
+  "event_count": 122,
+  "price_count": 0,
+  "cards_count": 11,
+  "tables": [
+    {
+      "name": "sets",
+      "file": "sets.dump.gz",
+      "bytes": 279,
+      "columns": [
+        "code",
+        "name",
+        "release_date",
+        "age",
+        "set_type",
+        "first_seen_at",
+        "last_seen_at",
+        "raw"
+      ]
+    },
+    {
+      "name": "cards",
+      "file": "cards.dump.gz",
+      "bytes": 34953,
+      "columns": [
+        "id",
+        "oracle_id",
+        "set_code",
+        "collector_number",
+        "name",
+        "art_id",
+        "artist",
+        "card_texture_number",
+        "other_face_texture_number",
+        "split_card_ids",
+        "split_parent_card_id",
+        "split_other_card_id",
+        "colors",
+        "color_identity",
+        "color_mask",
+        "color_identity_mask",
+        "mana_value",
+        "flavor_text",
+        "mana_cost",
+        "type_line",
+        "oracle_text",
+        "supertypes",
+        "card_types",
+        "subtypes",
+        "power",
+        "toughness",
+        "loyalty",
+        "defense",
+        "rarity",
+        "frame_style",
+        "promo_label",
+        "has_activated_ability",
+        "should_work",
+        "is_foil",
+        "is_token",
+        "first_seen_at",
+        "last_seen_at",
+        "raw",
+        "printed_name"
+      ]
+    },
+    {
+      "name": "products",
+      "file": "products.dump.gz",
+      "bytes": 2159,
+      "columns": [
+        "id",
+        "set_code",
+        "name",
+        "object_type",
+        "texture_number",
+        "is_tradable",
+        "first_seen_at",
+        "last_seen_at",
+        "raw",
+        "description"
+      ]
+    },
+    {
+      "name": "card_catalog_variants",
+      "file": "card_catalog_variants.dump.gz",
+      "bytes": 6242,
+      "columns": [
+        "catalog_id",
+        "card_id",
+        "variant_type",
+        "set_code",
+        "name",
+        "card_texture_number",
+        "is_foil",
+        "is_token",
+        "first_seen_at",
+        "last_seen_at",
+        "raw"
+      ]
+    },
+    {
+      "name": "card_faces",
+      "file": "card_faces.dump.gz",
+      "bytes": 3927,
+      "columns": [
+        "card_id",
+        "face_index",
+        "source_catalog_id",
+        "name",
+        "colors",
+        "color_mask",
+        "mana_value",
+        "flavor_text",
+        "mana_cost",
+        "type_line",
+        "oracle_text",
+        "supertypes",
+        "card_types",
+        "subtypes",
+        "power",
+        "toughness",
+        "loyalty",
+        "defense",
+        "artist",
+        "art_id",
+        "raw",
+        "printed_name"
+      ]
+    },
+    {
+      "name": "oracle_cards",
+      "file": "oracle_cards.dump.gz",
+      "bytes": 11480,
+      "columns": [
+        "id",
+        "name",
+        "mana_cost",
+        "mana_value",
+        "type_line",
+        "oracle_text",
+        "colors",
+        "color_identity",
+        "color_mask",
+        "color_identity_mask",
+        "supertypes",
+        "card_types",
+        "subtypes",
+        "power",
+        "toughness",
+        "loyalty",
+        "defense",
+        "is_token",
+        "first_seen_at",
+        "last_seen_at"
+      ]
+    },
+    {
+      "name": "formats",
+      "file": "formats.dump.gz",
+      "bytes": 132,
+      "columns": [
+        "code",
+        "name",
+        "display_order"
+      ]
+    },
+    {
+      "name": "card_legalities",
+      "file": "card_legalities.dump.gz",
+      "bytes": 7165,
+      "columns": [
+        "oracle_id",
+        "format_code",
+        "status",
+        "source_rule_set_id",
+        "first_seen_at",
+        "last_seen_at"
+      ]
+    },
+    {
+      "name": "archetypes",
+      "file": "archetypes.dump.gz",
+      "bytes": 1771,
+      "columns": [
+        "id",
+        "deck_id",
+        "name",
+        "archetype",
+        "archetype_id",
+        "provider"
+      ]
+    },
+    {
+      "name": "events",
+      "file": "events.dump.gz",
+      "bytes": 1384,
+      "columns": [
+        "id",
+        "name",
+        "date",
+        "format",
+        "kind",
+        "rounds",
+        "players"
+      ]
+    },
+    {
+      "name": "matches",
+      "file": "matches.dump.gz",
+      "bytes": 20,
+      "columns": [
+        "id",
+        "event_id",
+        "round",
+        "player",
+        "opponent",
+        "record",
+        "result",
+        "isbye",
+        "games"
+      ]
+    },
+    {
+      "name": "decks",
+      "file": "decks.dump.gz",
+      "bytes": 260601,
+      "columns": [
+        "id",
+        "event_id",
+        "player",
+        "mainboard",
+        "sideboard"
+      ]
+    },
+    {
+      "name": "standings",
+      "file": "standings.dump.gz",
+      "bytes": 28427,
+      "columns": [
+        "event_id",
+        "rank",
+        "player",
+        "record",
+        "points",
+        "omwp",
+        "gwp",
+        "owp"
+      ]
+    },
+    {
+      "name": "players",
+      "file": "players.dump.gz",
+      "bytes": 11940,
+      "columns": [
+        "id",
+        "name"
+      ]
+    }
+  ]
+}
