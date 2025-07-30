@@ -1,0 +1,6 @@
+tunnel: ${CLOUDFLARED_TUNNEL_ID}
+credentials-file: /etc/cloudflared/${CLOUDFLARED_TUNNEL_ID}.json
+ingress:
+  - hostname: ${CLOUDFLARED_TUNNEL_HOSTNAME}
+    service: tcp://pgbouncer:${POSTGRES_PORT}
+  - service: http_status:404

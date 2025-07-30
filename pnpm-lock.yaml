@@ -1,0 +1,29 @@
+lockfileVersion: 5.4
+
+specifiers:
+  cloudflared: ^0.7.0
+  dotenv: ^16.5.0
+  postgres: ^3.4.7
+
+devDependencies:
+  cloudflared: 0.7.0
+  dotenv: 16.5.0
+  postgres: 3.4.7
+
+packages:
+
+  /cloudflared/0.7.0:
+    resolution: {integrity: sha512-CB60WqD8N/ZoT3cNVlLai8X4fIk9bY3cfx7/7h8RAi1LDrEe/ioZS9Fin3ohr9pKrzXGStiYKtm6qPyFbx3S6w==}
+    hasBin: true
+    requiresBuild: true
+    dev: true
+
+  /dotenv/16.5.0:
+    resolution: {integrity: sha512-m/C+AwOAr9/W1UOIZUo232ejMNnJAJtYQjUbHoNTBNTJSvqzzDh7vnrei3o3r3m9blf6ZoDkvcw0VmozNRFJxg==}
+    engines: {node: '>=12'}
+    dev: true
+
+  /postgres/3.4.7:
+    resolution: {integrity: sha512-Jtc2612XINuBjIl/QTWsV5UvE8UHuNblcO3vVADSrKsrc6RqGX6lOW1cEo3CM2v0XG4Nat8nI+YM7/f26VxXLw==}
+    engines: {node: '>=12'}
+    dev: true

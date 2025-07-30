@@ -1,0 +1,20 @@
+{
+  "type": "module",
+  "scripts": {
+    "ts": "node --no-warnings --experimental-strip-types",
+    "setup-tunnel": "pnpm run ts scripts/setup-cf-tunnel.ts",
+    "list-tables": "pnpm run ts scripts/list-tables.ts",
+    "start": "docker compose up -d --no-recreate",
+    "stop": "docker compose down",
+    "logs": "docker compose logs -f"
+  },
+  "devDependencies": {
+    "cloudflared": "^0.7.0",
+    "dotenv": "^16.5.0",
+    "postgres": "^3.4.7"
+  },
+  "engines": {
+    "node": ">=22.6.0",
+    "pnpm": ">=3"
+  }
+}

@@ -1,0 +1,6 @@
+.env
+cloudflared/*.json
+cloudflared/config.yml
+node_modules/
+postgres/data/
+postgres/logs/
