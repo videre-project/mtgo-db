@@ -17,47 +17,40 @@ services:
       POSTGRES_WAL_BUFFERS: 16MB
       POSTGRES_RANDOM_PAGE_COST: 1.1
     volumes:
-      - ./postgres/data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
       # Main entrypoint for initializing the database
       - ./postgres/initdb.d:/docker-entrypoint-initdb.d:ro
       # Include additional SQL files in /pg
       - ./postgres/extensions.sql:/pg/extensions.sql:ro
       - ./postgres/schema.sql:/pg/schema.sql:ro
       - ./postgres/indexes.sql:/pg/indexes.sql:ro
+      # Mount dump directory for migrations
+      - ./postgres/dump:/pg/dump:ro
     ports:
-      - "127.0.0.1:5432:5432"
+      - "127.0.0.1:5433:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
-    deploy:
-      resources:
-        limits:
-          memory: 2G
-          cpus: '1.0'
-        reservations:
-          memory: 512M
-          cpus: '0.25'
     networks:
       - cloudflared
   pgbouncer:
-    image: bitnami/pgbouncer:latest
+    image: edoburu/pgbouncer:latest
     container_name: pgbouncer-prod
     restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
     environment:
-      POSTGRESQL_HOST: postgres
-      POSTGRESQL_PORT: 5432
-      POSTGRESQL_USERNAME: ${POSTGRES_USER}
-      POSTGRESQL_PASSWORD: ${POSTGRES_PASSWORD}
-      PGBOUNCER_DATABASE: ${POSTGRES_DB}
-      PGBOUNCER_PORT: ${POSTGRES_PORT}
-      PGBOUNCER_BIND_ADDRESS: 0.0.0.0
+      DATABASE_URL: "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}"
+      POOL_MODE: session
+      MAX_CLIENT_CONN: 100
+      DEFAULT_POOL_SIZE: 20
+      LISTEN_PORT: '${POSTGRES_PORT:-6432}'
+      AUTH_TYPE: scram-sha-256
     ports:
-      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+      - "127.0.0.1:${POSTGRES_PORT:-6432}:${POSTGRES_PORT:-6432}"
     networks:
       - cloudflared
   cloudflared:
@@ -77,3 +70,5 @@ services:
 networks:
   cloudflared:
     driver: bridge
+volumes:
+  postgres-data:

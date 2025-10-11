@@ -125,19 +125,37 @@ async function main() {
 
   // Prepare .env update
   const envPath = path.resolve(process.cwd(), '.env');
-  let envLines = [] as string[];
+  let envLines: string[] = [];
   if (fs.existsSync(envPath)) {
     envLines = fs.readFileSync(envPath, 'utf-8').split('\n');
   }
+  let envVars = parseEnvFile(envLines);
 
-  // Write back .env (filter out blank trailing lines)
+  const fallbackPort = envVars.POSTGRES_PORT?.trim() || process.env.POSTGRES_PORT?.trim() || '6432';
+  let postgresPort = fallbackPort;
+  if (!envVars.POSTGRES_PORT || envVars.POSTGRES_PORT.trim() === '') {
+    const portAnswer = await ask(`Enter the PgBouncer port to expose locally (default ${fallbackPort}): `);
+    postgresPort = (portAnswer || fallbackPort).trim();
+  } else {
+    postgresPort = envVars.POSTGRES_PORT.trim();
+  }
+  if (!/^[0-9]+$/.test(postgresPort)) {
+    console.error('Invalid port number. Please provide a numeric port (e.g., 6432).');
+    process.exit(1);
+  }
+  setEnvVar(envLines, 'POSTGRES_PORT', postgresPort);
+  envVars.POSTGRES_PORT = postgresPort;
+
   setEnvVar(envLines, 'CLOUDFLARED_TUNNEL_HOSTNAME', hostname);
+  envVars.CLOUDFLARED_TUNNEL_HOSTNAME = hostname;
   setEnvVar(envLines, 'CLOUDFLARED_TUNNEL_NAME', tunnelName);
+  envVars.CLOUDFLARED_TUNNEL_NAME = tunnelName;
   setEnvVar(envLines, 'CLOUDFLARED_TUNNEL_ID', tunnelId);
+  envVars.CLOUDFLARED_TUNNEL_ID = tunnelId;
   fs.writeFileSync(envPath, envLines.filter(l => l.trim() !== '').join('\n'));
 
   console.log('Updated .env with tunnel information.\n');
-  const envVars = parseEnvFile(envLines);
+  envVars = parseEnvFile(envLines);
 
   // Read from ./cloudflared/config.template.yml
   const templatePath = path.resolve(configDir, 'config.template.yml');

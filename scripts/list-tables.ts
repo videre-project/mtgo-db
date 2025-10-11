@@ -1,25 +1,42 @@
 import postgres from 'postgres';
 import dotenv from 'dotenv';
+import { spawn } from "node:child_process";
+import { setTimeout } from 'node:timers/promises';
+import cf, { bin, install } from "cloudflared";
+
 dotenv.config();
 
-// import { spawn } from "node:child_process";
-// import cf, { bin, install } from "cloudflared";
-// // Run cloudflared access to connect to the PostgreSQL database
-// const host = '127.0.0.1:8000'
-// // await new Promise<void>((resolve) =>
-//   spawn(bin, ['access', 'tcp', '--hostname', process.env.CLOUDFLARED_TUNNEL_HOSTNAME!, '--url', host], { stdio: 'inherit' });
-// // );
-// import { setTimeout } from 'node:timers/promises';
-// await setTimeout(500);
+// Install cloudflared if not present
+if (!await import('node:fs').then(fs => fs.promises.access(bin).then(() => true).catch(() => false))) {
+  console.log('Installing cloudflared...');
+  await install(bin);
+}
+
+// Local forwarding port for cloudflared access
+const localPort = 8000;
+const localHost = '127.0.0.1';
+
+console.log(`Starting cloudflared access tunnel to ${process.env.CLOUDFLARED_TUNNEL_HOSTNAME}...`);
+console.log(`Forwarding ${localHost}:${localPort} -> ${process.env.CLOUDFLARED_TUNNEL_HOSTNAME}:${process.env.POSTGRES_PORT}\n`);
+
+// Run cloudflared access to forward the connection
+const accessProcess = spawn(
+  bin, 
+  [
+    'access', 
+    'tcp', 
+    '--hostname', process.env.CLOUDFLARED_TUNNEL_HOSTNAME!, 
+    '--url', `${localHost}:${localPort}`
+  ], 
+  { stdio: 'pipe' }
+);
+
+// Wait for cloudflared to establish connection
+await setTimeout(2000);
 
 const sql = postgres({
-  // host: process.env.CLOUDFLARED_TUNNEL_HOSTNAME,
-  // port: 80,
-  host: '127.0.0.1',
-  port: 8000, // Port where cloudflared is forwarding the connection
-  // // host: process.env.CLOUDFLARED_TUNNEL_HOSTNAME,
-  // // host: "db1.videreproject.com",
-  // // port: 6543,//Number(process.env.POSTGRES_PORT),
+  host: localHost,
+  port: localPort,
   user: process.env.POSTGRES_USER,
   password: process.env.POSTGRES_PASSWORD,
   database: process.env.POSTGRES_DB,
@@ -56,6 +73,8 @@ async function listTablesWithSchema(): Promise<void> {
     console.error('Error querying tables:', err);
   } finally {
     await sql.end();
+    // Kill the cloudflared access process
+    accessProcess.kill();
   }
 }
 

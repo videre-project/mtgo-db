@@ -4,3 +4,6 @@ cloudflared/config.yml
 node_modules/
 postgres/data/
 postgres/logs/
+postgres/dump/*.sql
+postgres/dump/*.dump
+postgres/dump/*.tar

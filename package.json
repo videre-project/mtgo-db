@@ -4,6 +4,8 @@
     "ts": "node --no-warnings --experimental-strip-types",
     "setup-tunnel": "pnpm run ts scripts/setup-cf-tunnel.ts",
     "list-tables": "pnpm run ts scripts/list-tables.ts",
+    "import-dump": "pnpm run ts scripts/import-dump.ts",
+    "test-events": "pnpm run ts scripts/test-events.ts",
     "start": "docker compose up -d --no-recreate",
     "stop": "docker compose down",
     "logs": "docker compose logs -f"
