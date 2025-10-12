@@ -124,6 +124,43 @@ pnpm list-tables
 
 This script connects through the Cloudflare tunnel and lists all tables with their columns.
 
+### Syncing from Upstream Database
+
+To sync new events from another PostgreSQL database:
+
+```bash
+UPSTREAM_CONNECTION_STRING="postgres://user:password@host:5432/database" pnpm run sync-upstream
+```
+
+Or add `UPSTREAM_CONNECTION_STRING` to your `.env` file:
+
+```env
+# .env
+UPSTREAM_CONNECTION_STRING=postgres://user:password@host:5432/database
+```
+
+Then run:
+
+```bash
+pnpm run sync-upstream
+```
+
+The script will:
+- Connect to both the upstream and local databases
+- Identify events not present locally
+- Sync only new events and all related data (players, standings, matches, decks, archetypes)
+- Handle table dependencies automatically
+- Provide a detailed summary of synced records
+
+Use the below connection string format to specify your upstream database:
+```
+postgres://[user]:[password]@[host]:[port]/[database]?[options]
+```
+
+> [!NOTE]
+> Ensure the upstream database is accessible from your environment.
+> Note that the script is designed for one-way syncing and does not handle deletions or updates from the upstream source. However, the script is idempotent and safe to run multiple times. It is recommended to use a read-only user for the upstream connection and prefer a pub/sub or replication method over periodic syncing when possible.
+
 ### Importing Data from a Dump
 
 The database automatically imports dump files on first initialization. For manual imports or to update an existing database:
