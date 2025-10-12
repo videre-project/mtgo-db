@@ -11,6 +11,7 @@
     "logs": "docker compose logs -f"
   },
   "devDependencies": {
+    "@types/node": "^22.9.0",
     "cloudflared": "^0.7.0",
     "dotenv": "^16.5.0",
     "postgres": "^3.4.7"
