@@ -84,9 +84,9 @@ npm install -g pnpm
    - PostgreSQL on `localhost:5433`
    - PgBouncer on `localhost:6432`
    - Cloudflare Tunnel (if configured)
-   
-   > [!NOTE]
-   > On first startup, any `.sql` dump files in `postgres/dump/` will be automatically imported. This may take several minutes depending on the size of your data.
+
+> [!NOTE]
+> On first startup, any `.sql` dump files in `postgres/dump/` will be automatically imported. This may take several minutes depending on the size of your data.
 
 ## Usage
 
@@ -318,8 +318,3 @@ This project is licensed under the [Apache-2.0 License](LICENSE).
 ## Disclaimer
 
 This project is not affiliated with Wizards of the Coast, Daybreak Games, or Magic: The Gathering Online. Magic: The Gathering Online (MTGO) is a trademark of Wizards of the Coast and is operated and published by Daybreak Games under license. All product names, trademarks, and registered trademarks are the property of their respective owners.
-
-This database infrastructure is intended as a data storage solution for MTGO-related applications and tools.
-
-> [!WARNING]
-> This is not legal advice. Use this software at your own risk and ensure compliance with all applicable terms of service.
