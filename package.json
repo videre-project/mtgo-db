@@ -5,6 +5,7 @@
     "setup-tunnel": "pnpm run ts scripts/setup-cf-tunnel.ts",
     "test-tunnel": "pnpm run ts scripts/test-tunnel.ts",
     "list-tables": "pnpm run ts scripts/list-tables.ts",
+    "export-dump": "pnpm run ts scripts/export-dump.ts",
     "import-dump": "pnpm run ts scripts/import-dump.ts",
     "merge-dump": "pnpm run ts scripts/merge-dump.ts",
     "test-events": "pnpm run ts scripts/test-events.ts",
