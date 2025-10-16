@@ -1,3 +1,6 @@
 # This file will be populated by pgpool automatically
 # You can also manually add entries in the format: username:encrypted_password
 # To generate encrypted password, use: pg_md5 your_password
+
+# Passwordless api user (uses trust authentication)
+api:

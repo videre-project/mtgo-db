@@ -54,7 +54,7 @@ npm install -g pnpm
    ```bash
    POSTGRES_USER=your_username
    POSTGRES_PASSWORD=your_secure_password
-   POSTGRES_DB=mtgo-db1
+   POSTGRES_DB=mtgo
    POSTGRES_PORT=6432
    ```
 
@@ -284,7 +284,7 @@ Manually pipe the dump file:
 
 ```bash
 # For .sql files
-docker exec -i postgres-prod psql -U your_username -d mtgo-db1 < postgres/dump/mtgo_dump.sql
+docker exec -i postgres-prod psql -U your_username -d mtgo < postgres/dump/mtgo_dump.sql
 
 # Or pipe directly
 cat postgres/dump/mtgo_dump.sql | docker exec -i postgres-prod psql -U $POSTGRES_USER -d $POSTGRES_DB
@@ -295,7 +295,7 @@ cat postgres/dump/mtgo_dump.sql | docker exec -i postgres-prod psql -U $POSTGRES
 If you have PostgreSQL client tools installed locally:
 
 ```bash
-psql -h localhost -p 5433 -U your_username -d mtgo-db1 -f postgres/dump/mtgo_dump.sql
+psql -h localhost -p 5433 -U your_username -d mtgo -f postgres/dump/mtgo_dump.sql
 ```
 
 ##### Via PgBouncer
@@ -303,7 +303,7 @@ psql -h localhost -p 5433 -U your_username -d mtgo-db1 -f postgres/dump/mtgo_dum
 For remote imports through the connection pooler:
 
 ```bash
-psql -h localhost -p 6432 -U your_username -d mtgo-db1 -f postgres/dump/mtgo_dump.sql
+psql -h localhost -p 6432 -U your_username -d mtgo -f postgres/dump/mtgo_dump.sql
 ```
 
 > [!NOTE]
@@ -316,7 +316,7 @@ psql -h localhost -p 6432 -U your_username -d mtgo-db1 -f postgres/dump/mtgo_dum
 Connect through Pgpool-II for automatic read/write splitting:
 
 ```bash
-psql -h localhost -p 6432 -U your_username -d mtgo-db1
+psql -h localhost -p 6432 -U your_username -d mtgo
 ```
 
 All `SELECT` queries are automatically routed to the read replica, while write operations (`INSERT`, `UPDATE`, `DELETE`) go to the primary database. This is completely transparent to your application.
@@ -326,23 +326,28 @@ All `SELECT` queries are automatically routed to the read replica, while write o
 For administrative tasks or when you need to bypass Pgpool-II:
 
 ```bash
-psql -h localhost -p 5433 -U your_username -d mtgo-db1
+psql -h localhost -p 5433 -U your_username -d mtgo
 ```
 
 #### Remote Connection (via Cloudflare Tunnel)
 
 Use your configured tunnel hostname with port 6432. Authentication is handled through Cloudflare Access. The tunnel connects to Pgpool-II, so remote users automatically benefit from read/write splitting.
 
-#### Read-Only Public User
+#### Read-Only API User
 
-A `public_user` is configured with read-only access. All queries from this user are automatically routed to read replicas:
+An `api` user is configured with passwordless read-only access. All queries from this user are automatically routed to read replicas:
 
 ```bash
-psql -h localhost -p 6432 -U public_user -d mtgo-db1
+psql -h localhost -p 6432 -U api -d mtgo
 ```
 
-> [!NOTE]
-> Remember to change the default password for `public_user` in `postgres/public_user.sql` before deploying to production.
+Or via Cloudflare Tunnel:
+
+```bash
+psql -h db1.videreproject.com -p 6432 -U api -d mtgo
+```
+
+Connection string: `postgres://api@db1.videreproject.com:6432/mtgo`
 
 ## Database Schema
 

@@ -24,7 +24,7 @@ services:
       - ./postgres/extensions.sql:/pg/extensions.sql:ro
       - ./postgres/schema.sql:/pg/schema.sql:ro
       - ./postgres/indexes.sql:/pg/indexes.sql:ro
-      - ./postgres/public_user.sql:/pg/public_user.sql:ro
+      - ./postgres/api_user.sql:/pg/api_user.sql:ro
       # Mount dump directory for migrations
       - ./postgres/dump:/pg/dump:ro
     ports:

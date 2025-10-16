@@ -5,4 +5,4 @@
 \i /pg/extensions.sql
 \i /pg/schema.sql
 \i /pg/indexes.sql
-\i /pg/public_user.sql
+\i /pg/api_user.sql
