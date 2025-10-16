@@ -24,10 +24,19 @@ services:
       - ./postgres/extensions.sql:/pg/extensions.sql:ro
       - ./postgres/schema.sql:/pg/schema.sql:ro
       - ./postgres/indexes.sql:/pg/indexes.sql:ro
+      - ./postgres/public_user.sql:/pg/public_user.sql:ro
       # Mount dump directory for migrations
       - ./postgres/dump:/pg/dump:ro
     ports:
       - "127.0.0.1:5433:5432"
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=replica"
+      - "-c"
+      - "max_wal_senders=10"
+      - "-c"
+      - "max_replication_slots=10"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
@@ -35,22 +44,159 @@ services:
       retries: 5
     networks:
       - cloudflared
-  pgbouncer:
-    image: edoburu/pgbouncer:latest
-    container_name: pgbouncer-prod
+  
+  # Automated backup service - monitors database and backs up after writes
+  backup:
+    image: postgres:latest
+    container_name: postgres-backup
     restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
     environment:
-      DATABASE_URL: "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}"
-      POOL_MODE: session
-      MAX_CLIENT_CONN: 100
-      DEFAULT_POOL_SIZE: 20
-      LISTEN_PORT: '${POSTGRES_PORT:-6432}'
-      AUTH_TYPE: scram-sha-256
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      BACKUP_AFTER_WRITE_DELAY: "300"  # Wait 5 minutes after last write (in seconds)
+      MIN_BACKUP_INTERVAL: "3600"      # Minimum 1 hour between backups (in seconds)
+    volumes:
+      - ./postgres/dump:/backups
+    entrypoint: >
+      sh -c '
+        echo "Backup service started."
+        echo "Will backup $(BACKUP_AFTER_WRITE_DELAY)s after database writes, minimum $(MIN_BACKUP_INTERVAL)s between backups."
+        
+        LAST_BACKUP_TIME=0
+        LAST_WRITE_TIME=0
+        
+        while true; do
+          # Query the database to check last modification time
+          LAST_MOD=$$(PGPASSWORD=$$POSTGRES_PASSWORD psql -h postgres -U $$POSTGRES_USER -d $$POSTGRES_DB -t -c "
+            SELECT EXTRACT(EPOCH FROM MAX(GREATEST(
+              COALESCE(pg_stat_get_last_vacuum_time(oid), to_timestamp(0)),
+              COALESCE(pg_stat_get_last_autovacuum_time(oid), to_timestamp(0)),
+              COALESCE(pg_stat_get_last_analyze_time(oid), to_timestamp(0)),
+              COALESCE(pg_stat_get_last_autoanalyze_time(oid), to_timestamp(0))
+            ))) FROM pg_class WHERE relkind = '\''r'\'';" 2>/dev/null | tr -d " " || echo "0")
+          
+          # Get database size to detect changes
+          DB_SIZE=$$(PGPASSWORD=$$POSTGRES_PASSWORD psql -h postgres -U $$POSTGRES_USER -d $$POSTGRES_DB -t -c "SELECT pg_database_size('\''$$POSTGRES_DB'\'');" 2>/dev/null | tr -d " " || echo "0")
+          
+          CURRENT_TIME=$$(date +%s)
+          
+          # Check if there has been activity (db size changed or recent modification)
+          if [ "$$DB_SIZE" != "$$PREV_DB_SIZE" ] || [ "$$LAST_MOD" != "0" ]; then
+            LAST_WRITE_TIME=$$CURRENT_TIME
+            PREV_DB_SIZE=$$DB_SIZE
+          fi
+          
+          # Calculate time since last write and last backup
+          TIME_SINCE_WRITE=$$((CURRENT_TIME - LAST_WRITE_TIME))
+          TIME_SINCE_BACKUP=$$((CURRENT_TIME - LAST_BACKUP_TIME))
+          
+          # Backup if: enough time has passed since last write AND minimum interval has elapsed
+          if [ $$LAST_WRITE_TIME -gt 0 ] && \
+             [ $$TIME_SINCE_WRITE -ge $${BACKUP_AFTER_WRITE_DELAY} ] && \
+             [ $$TIME_SINCE_BACKUP -ge $${MIN_BACKUP_INTERVAL} ]; then
+            
+            TIMESTAMP=$$(date +%Y-%m-%d_%H-%M-%S)
+            echo "Database activity detected. Starting backup at $$TIMESTAMP..."
+            
+            if PGPASSWORD=$$POSTGRES_PASSWORD pg_dump -h postgres -U $$POSTGRES_USER -d $$POSTGRES_DB > /backups/backup-$$TIMESTAMP.sql 2>/dev/null; then
+              echo "✓ Backup completed: backup-$$TIMESTAMP.sql"
+              
+              # Update latest backup
+              cp /backups/backup-$$TIMESTAMP.sql /backups/latest-backup.sql
+              echo "✓ Latest backup updated"
+              
+              LAST_BACKUP_TIME=$$CURRENT_TIME
+              
+              # Clean up old backups (keep last 30 days)
+              find /backups -name "backup-*.sql" -type f -mtime +30 -delete 2>/dev/null
+              echo "✓ Old backups cleaned up (kept last 30 days)"
+            else
+              echo "✗ Backup failed, will retry"
+            fi
+          fi
+          
+          # Check every 60 seconds
+          sleep 60
+        done
+      '
+    networks:
+      - cloudflared
+
+  postgres-replica:
+    image: postgres:latest
+    container_name: postgres-replica-prod
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - postgres-data-replica:/var/lib/postgresql/data
+    entrypoint: >
+      bash -c "
+        rm -rf /var/lib/postgresql/data/* &&
+        until pg_basebackup --pgdata=/var/lib/postgresql/data -R --slot=replication_slot --host=postgres --username=${POSTGRES_USER} --password=${POSTGRES_PASSWORD}
+        do
+          echo 'Waiting for primary to connect...'
+          sleep 1s
+        done
+        echo 'Backup created, starting replica...'
+        chmod 0700 /var/lib/postgresql/data &&
+        postgres
+      "
+    networks:
+      - cloudflared
+  pgpool:
+    image: pgpool/pgpool:latest
+    container_name: pgpool-prod
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      postgres-replica:
+        condition: service_started
     ports:
-      - "127.0.0.1:${POSTGRES_PORT:-6432}:${POSTGRES_PORT:-6432}"
+      - "127.0.0.1:6432:9999"
+    environment:
+      - POSTGRES_USERNAME=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - PGPOOL_PARAMS_BACKEND_HOSTNAME0=postgres
+      - PGPOOL_PARAMS_BACKEND_PORT0=5432
+      - PGPOOL_PARAMS_BACKEND_WEIGHT0=0
+      - PGPOOL_PARAMS_BACKEND_DATA_DIRECTORY0=/var/lib/postgresql/data
+      - PGPOOL_PARAMS_BACKEND_FLAG0=ALWAYS_PRIMARY|DISALLOW_TO_FAILOVER
+      - PGPOOL_PARAMS_BACKEND_HOSTNAME1=postgres-replica
+      - PGPOOL_PARAMS_BACKEND_PORT1=5432
+      - PGPOOL_PARAMS_BACKEND_WEIGHT1=1
+      - PGPOOL_PARAMS_BACKEND_DATA_DIRECTORY1=/var/lib/postgresql/data
+      - PGPOOL_PARAMS_BACKEND_FLAG1=DISALLOW_TO_FAILOVER
+      - PGPOOL_PARAMS_PORT=9999
+      - PGPOOL_PARAMS_LOAD_BALANCE_MODE=on
+      - PGPOOL_PARAMS_MASTER_SLAVE_MODE=on
+      - PGPOOL_PARAMS_MASTER_SLAVE_SUB_MODE=stream
+      - PGPOOL_PARAMS_SR_CHECK_USER=${POSTGRES_USER}
+      - PGPOOL_PARAMS_SR_CHECK_PASSWORD=${POSTGRES_PASSWORD}
+      - PGPOOL_PARAMS_SR_CHECK_DATABASE=postgres
+      - PGPOOL_PARAMS_HEALTH_CHECK_USER=${POSTGRES_USER}
+      - PGPOOL_PARAMS_HEALTH_CHECK_PASSWORD=${POSTGRES_PASSWORD}
+      - PGPOOL_PARAMS_HEALTH_CHECK_DATABASE=postgres
+      - PGPOOL_PARAMS_HEALTH_CHECK_PERIOD=5
+      - PGPOOL_PARAMS_HEALTH_CHECK_TIMEOUT=20
+      - PGPOOL_PARAMS_HEALTH_CHECK_MAX_RETRIES=3
+      - PGPOOL_PARAMS_FAILOVER_ON_BACKEND_ERROR=off
+      - PGPOOL_PARAMS_LOG_LINE_PREFIX=%t pid %p
+      - PGPOOL_PARAMS_LOG_CONNECTIONS=on
+      - PGPOOL_PARAMS_LOG_HOSTNAME=on
+      - PGPOOL_PARAMS_NUM_INIT_CHILDREN=32
+      - PGPOOL_PARAMS_MAX_POOL=4
+    volumes:
+      - ./pgpool/pool_hba.conf:/usr/local/etc/pool_hba.conf:ro
+      - ./pgpool/pool_passwd:/usr/local/etc/pool_passwd:ro
     networks:
       - cloudflared
   cloudflared:
@@ -58,7 +204,7 @@ services:
     container_name: cloudflared-tunnel
     restart: unless-stopped
     depends_on:
-      - pgbouncer
+      - pgpool
     command: tunnel --no-autoupdate run
     environment:
       - CLOUDFLARED_TUNNEL_NAME=${CLOUDFLARED_TUNNEL_NAME}
@@ -72,3 +218,4 @@ networks:
     driver: bridge
 volumes:
   postgres-data:
+  postgres-data-replica:
