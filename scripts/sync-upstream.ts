@@ -95,8 +95,46 @@ async function getLocalEventIds(): Promise<Set<number>> {
   return eventIds;
 }
 
+async function getIncompleteEventIds(): Promise<number[]> {
+  console.log('Checking for incomplete events...');
+  
+  // Find events that exist locally but are missing essential data
+  // An event is considered incomplete if it has players but is missing standings OR matches
+  // (We don't check for decks because not all event types have decks, e.g., Preliminaries)
+  const incompleteEvents = await local<{ id: number; name: string; date: Date }[]>`
+    SELECT DISTINCT e.id, e.name, e.date
+    FROM events e
+    WHERE 
+      e.players > 0 AND (
+        -- Missing standings (essential for all events with players)
+        NOT EXISTS (SELECT 1 FROM standings s WHERE s.event_id = e.id)
+        -- Missing matches (essential for all events with players)
+        OR NOT EXISTS (SELECT 1 FROM matches m WHERE m.event_id = e.id)
+      )
+    ORDER BY e.date DESC, e.id DESC
+    LIMIT 100;
+  `;
+  
+  const eventIds = incompleteEvents.map(e => e.id);
+  
+  if (eventIds.length > 0) {
+    console.log(`Found ${eventIds.length} incomplete event(s) to update:`);
+    incompleteEvents.slice(0, 5).forEach((event, index) => {
+      console.log(`  ${index + 1}. [${event.id}] ${event.name}`);
+    });
+    if (incompleteEvents.length > 5) {
+      console.log(`  ... and ${incompleteEvents.length - 5} more event(s)`);
+    }
+    console.log('');
+  } else {
+    console.log('All existing events are complete.\n');
+  }
+  
+  return eventIds;
+}
+
 async function getUpstreamEvents(excludeIds: Set<number>): Promise<EventRecord[]> {
-  console.log('Fetching events from upstream database...');
+  console.log('Fetching new events from upstream database...');
   
   let events;
   if (excludeIds.size === 0) {
@@ -194,16 +232,28 @@ async function syncStandings(eventIds: number[]): Promise<number> {
   
   if (standings.length === 0) return 0;
   
-  await local`
-    INSERT INTO standings ${local(standings, 'event_id', 'rank', 'player', 'record', 'points', 'omwp', 'gwp', 'owp')}
-    ON CONFLICT (event_id, player) DO UPDATE SET
-      rank = EXCLUDED.rank,
-      record = EXCLUDED.record,
-      points = EXCLUDED.points,
-      omwp = EXCLUDED.omwp,
-      gwp = EXCLUDED.gwp,
-      owp = EXCLUDED.owp;
-  `;
+  // Insert in batches to avoid parameter limit
+  // Each standing has 8 fields, so we can safely insert ~8000 standings per batch
+  const BATCH_SIZE = 8000;
+  let totalSynced = 0;
+  
+  for (let i = 0; i < standings.length; i += BATCH_SIZE) {
+    const batch = standings.slice(i, i + BATCH_SIZE);
+    await local`
+      INSERT INTO standings ${local(batch, 'event_id', 'rank', 'player', 'record', 'points', 'omwp', 'gwp', 'owp')}
+      ON CONFLICT (event_id, player) DO UPDATE SET
+        rank = EXCLUDED.rank,
+        record = EXCLUDED.record,
+        points = EXCLUDED.points,
+        omwp = EXCLUDED.omwp,
+        gwp = EXCLUDED.gwp,
+        owp = EXCLUDED.owp;
+    `;
+    totalSynced += batch.length;
+    if (standings.length > BATCH_SIZE) {
+      console.log(`  Synced ${totalSynced}/${standings.length} standings...`);
+    }
+  }
   
   console.log(`Synced ${standings.length} standing(s).\n`);
   return standings.length;
@@ -223,16 +273,28 @@ async function syncMatches(eventIds: number[]): Promise<number> {
   
   if (matches.length === 0) return 0;
   
-  await local`
-    INSERT INTO matches ${local(matches, 'id', 'event_id', 'round', 'player', 'opponent', 'record', 'result', 'isbye', 'games')}
-    ON CONFLICT (event_id, round, player) DO UPDATE SET
-      id = EXCLUDED.id,
-      opponent = EXCLUDED.opponent,
-      record = EXCLUDED.record,
-      result = EXCLUDED.result,
-      isbye = EXCLUDED.isbye,
-      games = EXCLUDED.games;
-  `;
+  // Insert in batches to avoid parameter limit (65,534 parameters)
+  // Each match has 9 fields, so we can safely insert ~7000 matches per batch
+  const BATCH_SIZE = 7000;
+  let totalSynced = 0;
+  
+  for (let i = 0; i < matches.length; i += BATCH_SIZE) {
+    const batch = matches.slice(i, i + BATCH_SIZE);
+    await local`
+      INSERT INTO matches ${local(batch, 'id', 'event_id', 'round', 'player', 'opponent', 'record', 'result', 'isbye', 'games')}
+      ON CONFLICT (event_id, round, player) DO UPDATE SET
+        id = EXCLUDED.id,
+        opponent = EXCLUDED.opponent,
+        record = EXCLUDED.record,
+        result = EXCLUDED.result,
+        isbye = EXCLUDED.isbye,
+        games = EXCLUDED.games;
+    `;
+    totalSynced += batch.length;
+    if (matches.length > BATCH_SIZE) {
+      console.log(`  Synced ${totalSynced}/${matches.length} matches...`);
+    }
+  }
   
   console.log(`Synced ${matches.length} match(es).\n`);
   return matches.length;
@@ -252,14 +314,26 @@ async function syncDecks(eventIds: number[]): Promise<number> {
   
   if (decks.length === 0) return 0;
   
-  await local`
-    INSERT INTO decks ${local(decks, 'id', 'event_id', 'player', 'mainboard', 'sideboard')}
-    ON CONFLICT (id) DO UPDATE SET
-      event_id = EXCLUDED.event_id,
-      player = EXCLUDED.player,
-      mainboard = EXCLUDED.mainboard,
-      sideboard = EXCLUDED.sideboard;
-  `;
+  // Insert in batches to avoid parameter limit
+  // Each deck has 5 fields, so we can safely insert ~13000 decks per batch
+  const BATCH_SIZE = 13000;
+  let totalSynced = 0;
+  
+  for (let i = 0; i < decks.length; i += BATCH_SIZE) {
+    const batch = decks.slice(i, i + BATCH_SIZE);
+    await local`
+      INSERT INTO decks ${local(batch, 'id', 'event_id', 'player', 'mainboard', 'sideboard')}
+      ON CONFLICT (id) DO UPDATE SET
+        event_id = EXCLUDED.event_id,
+        player = EXCLUDED.player,
+        mainboard = EXCLUDED.mainboard,
+        sideboard = EXCLUDED.sideboard;
+    `;
+    totalSynced += batch.length;
+    if (decks.length > BATCH_SIZE) {
+      console.log(`  Synced ${totalSynced}/${decks.length} decks...`);
+    }
+  }
   
   console.log(`Synced ${decks.length} deck(s).\n`);
   return decks.length;
@@ -288,14 +362,26 @@ async function syncArchetypes(eventIds: number[]): Promise<number> {
   
   if (archetypes.length === 0) return 0;
   
-  await local`
-    INSERT INTO archetypes ${local(archetypes, 'id', 'deck_id', 'name', 'archetype', 'archetype_id')}
-    ON CONFLICT (id) DO UPDATE SET
-      deck_id = EXCLUDED.deck_id,
-      name = EXCLUDED.name,
-      archetype = EXCLUDED.archetype,
-      archetype_id = EXCLUDED.archetype_id;
-  `;
+  // Insert in batches to avoid parameter limit
+  // Each archetype has 5 fields, so we can safely insert ~13000 archetypes per batch
+  const BATCH_SIZE = 13000;
+  let totalSynced = 0;
+  
+  for (let i = 0; i < archetypes.length; i += BATCH_SIZE) {
+    const batch = archetypes.slice(i, i + BATCH_SIZE);
+    await local`
+      INSERT INTO archetypes ${local(batch, 'id', 'deck_id', 'name', 'archetype', 'archetype_id')}
+      ON CONFLICT (id) DO UPDATE SET
+        deck_id = EXCLUDED.deck_id,
+        name = EXCLUDED.name,
+        archetype = EXCLUDED.archetype,
+        archetype_id = EXCLUDED.archetype_id;
+    `;
+    totalSynced += batch.length;
+    if (archetypes.length > BATCH_SIZE) {
+      console.log(`  Synced ${totalSynced}/${archetypes.length} archetypes...`);
+    }
+  }
   
   console.log(`Synced ${archetypes.length} archetype(s).\n`);
   return archetypes.length;
@@ -338,55 +424,85 @@ async function sync(): Promise<void> {
     // Get local event IDs to exclude
     const localEventIds = await getLocalEventIds();
 
+    // Get incomplete events that need updating
+    const incompleteEventIds = await getIncompleteEventIds();
+
     // Get new events from upstream
     const newEvents = await getUpstreamEvents(localEventIds);
 
-    if (newEvents.length === 0) {
-      console.log('No new events to sync. Local database is up to date!');
+    // Combine new events and incomplete events
+    const allEventIdsToSync = [
+      ...newEvents.map(e => e.id),
+      ...incompleteEventIds
+    ];
+
+    // Show preview of new events to sync
+    if (newEvents.length > 0) {
+      console.log(`New events to sync (${newEvents.length}):`);
+      newEvents.slice(0, 5).forEach((event, index) => {
+        console.log(`  ${index + 1}. [${event.id}] ${event.name} (${event.date})`);
+      });
+      if (newEvents.length > 5) {
+        console.log(`  ... and ${newEvents.length - 5} more event(s)`);
+      }
+      console.log('');
+    }
+
+    if (allEventIdsToSync.length === 0) {
+      console.log('No events to sync. Local database is up to date!');
+      
+      // Still show summary with zeros
+      console.log('');
+      console.log('='.repeat(60));
+      console.log('Sync Summary');
+      console.log('='.repeat(60));
+      console.log(`New Events:       0`);
+      console.log(`Updated Events:   0`);
+      console.log(`Total Events:     0`);
+      console.log(`-`.repeat(60));
+      console.log(`Players:          0`);
+      console.log(`Standings:        0`);
+      console.log(`Matches:          0`);
+      console.log(`Decks:            0`);
+      console.log(`Archetypes:       0`);
+      console.log('='.repeat(60));
       return;
     }
 
-    // Show preview of events to sync
-    console.log('Events to sync:');
-    newEvents.slice(0, 5).forEach((event, index) => {
-      console.log(`  ${index + 1}. [${event.id}] ${event.name} (${event.date})`);
-    });
-    if (newEvents.length > 5) {
-      console.log(`  ... and ${newEvents.length - 5} more event(s)`);
-    }
-    console.log('');
-
-    const eventIds = newEvents.map(e => e.id);
-
     // Sync in order of dependencies
     // 1. Players (no dependencies)
-    stats.players = await syncPlayers(eventIds);
+    stats.players = await syncPlayers(allEventIdsToSync);
 
-    // 2. Events (no dependencies)
-    stats.events = await syncEvents(newEvents);
+    // 2. Events (no dependencies) - only sync new events
+    if (newEvents.length > 0) {
+      stats.events = await syncEvents(newEvents);
+    }
 
     // 3. Standings (depends on Events and Players)
-    stats.standings = await syncStandings(eventIds);
+    stats.standings = await syncStandings(allEventIdsToSync);
 
     // 4. Matches (depends on Events and Players)
-    stats.matches = await syncMatches(eventIds);
+    stats.matches = await syncMatches(allEventIdsToSync);
 
     // 5. Decks (depends on Events and Players)
-    stats.decks = await syncDecks(eventIds);
+    stats.decks = await syncDecks(allEventIdsToSync);
 
     // 6. Archetypes (depends on Decks)
-    stats.archetypes = await syncArchetypes(eventIds);
+    stats.archetypes = await syncArchetypes(allEventIdsToSync);
 
     // Print summary
     console.log('='.repeat(60));
     console.log('Sync Summary');
     console.log('='.repeat(60));
-    console.log(`Events:     ${stats.events}`);
-    console.log(`Players:    ${stats.players}`);
-    console.log(`Standings:  ${stats.standings}`);
-    console.log(`Matches:    ${stats.matches}`);
-    console.log(`Decks:      ${stats.decks}`);
-    console.log(`Archetypes: ${stats.archetypes}`);
+    console.log(`New Events:       ${newEvents.length}`);
+    console.log(`Updated Events:   ${incompleteEventIds.length}`);
+    console.log(`Total Events:     ${allEventIdsToSync.length}`);
+    console.log(`-`.repeat(60));
+    console.log(`Players:          ${stats.players}`);
+    console.log(`Standings:        ${stats.standings}`);
+    console.log(`Matches:          ${stats.matches}`);
+    console.log(`Decks:            ${stats.decks}`);
+    console.log(`Archetypes:       ${stats.archetypes}`);
     console.log('='.repeat(60));
     console.log('');
     console.log('✓ Sync completed successfully!');
