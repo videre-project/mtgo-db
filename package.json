@@ -2,14 +2,14 @@
   "type": "module",
   "scripts": {
     "ts": "node --no-warnings --experimental-strip-types",
-    "setup-tunnel": "pnpm run ts scripts/setup-cf-tunnel.ts",
+    "setup-tunnel": "pnpm run ts scripts/setup-tunnel.ts",
     "test-tunnel": "pnpm run ts scripts/test-tunnel.ts",
     "list-tables": "pnpm run ts scripts/list-tables.ts",
     "export-dump": "pnpm run ts scripts/export-dump.ts",
     "import-dump": "pnpm run ts scripts/import-dump.ts",
     "merge-dump": "pnpm run ts scripts/merge-dump.ts",
     "test-events": "pnpm run ts scripts/test-events.ts",
-    "sync-upstream": "pnpm run ts scripts/sync-from-upstream.ts",
+    "sync-upstream": "pnpm run ts scripts/sync-upstream.ts",
     "start": "docker compose up -d --no-recreate",
     "stop": "docker compose down",
     "logs": "docker compose logs -f"
