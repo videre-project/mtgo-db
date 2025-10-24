@@ -131,21 +131,6 @@ async function main() {
   }
   let envVars = parseEnvFile(envLines);
 
-  const fallbackPort = envVars.POSTGRES_PORT?.trim() || process.env.POSTGRES_PORT?.trim() || '6432';
-  let postgresPort = fallbackPort;
-  if (!envVars.POSTGRES_PORT || envVars.POSTGRES_PORT.trim() === '') {
-    const portAnswer = await ask(`Enter the PgBouncer port to expose locally (default ${fallbackPort}): `);
-    postgresPort = (portAnswer || fallbackPort).trim();
-  } else {
-    postgresPort = envVars.POSTGRES_PORT.trim();
-  }
-  if (!/^[0-9]+$/.test(postgresPort)) {
-    console.error('Invalid port number. Please provide a numeric port (e.g., 6432).');
-    process.exit(1);
-  }
-  setEnvVar(envLines, 'POSTGRES_PORT', postgresPort);
-  envVars.POSTGRES_PORT = postgresPort;
-
   setEnvVar(envLines, 'CLOUDFLARED_TUNNEL_HOSTNAME', hostname);
   envVars.CLOUDFLARED_TUNNEL_HOSTNAME = hostname;
   setEnvVar(envLines, 'CLOUDFLARED_TUNNEL_NAME', tunnelName);
