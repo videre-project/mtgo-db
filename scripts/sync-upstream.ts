@@ -164,38 +164,76 @@ async function syncPlayers(eventIds: number[]): Promise<number> {
   
   console.log('Syncing players...');
   
-  // Get all players involved in the new events from upstream
-  const upstreamPlayers = await upstream<{ id: number; name: string }[]>`
-    SELECT DISTINCT p.id, p.name
-    FROM players p
-    WHERE EXISTS (
-      SELECT 1 FROM standings s WHERE s.player = p.name AND s.event_id IN ${upstream(eventIds)}
-    ) OR EXISTS (
-      SELECT 1 FROM matches m WHERE m.player = p.name AND m.event_id IN ${upstream(eventIds)}
-    ) OR EXISTS (
-      SELECT 1 FROM decks d WHERE d.player = p.name AND d.event_id IN ${upstream(eventIds)}
-    );
+  // Get all player names referenced in standings/matches/decks for these events
+  const referencedPlayerNames = await upstream<{ player: string }[]>`
+    SELECT DISTINCT player FROM standings WHERE event_id IN ${upstream(eventIds)}
+    UNION
+    SELECT DISTINCT player FROM matches WHERE event_id IN ${upstream(eventIds)}
+    UNION
+    SELECT DISTINCT player FROM decks WHERE event_id IN ${upstream(eventIds)}
   `;
   
-  if (upstreamPlayers.length === 0) return 0;
+  if (referencedPlayerNames.length === 0) return 0;
+  
+  const playerNames = referencedPlayerNames.map(r => r.player);
+  
+  // Get player records from upstream (may not exist for all players)
+  const upstreamPlayers = await upstream<{ id: number | null; name: string }[]>`
+    SELECT p.id, p.name
+    FROM players p
+    WHERE p.name IN ${upstream(playerNames)}
+  `;
+  
+  // Create a map of existing upstream players
+  const upstreamPlayerMap = new Map(upstreamPlayers.map(p => [p.name, p.id]));
   
   // Get existing local players
   const localPlayers = await local<{ id: number; name: string }[]>`
     SELECT id, name FROM players;
   `;
   
-  const localPlayerMap = new Map(localPlayers.map(p => [p.id, p.name]));
-  const newPlayers = upstreamPlayers.filter(p => !localPlayerMap.has(p.id));
+  const localPlayerNameMap = new Map(localPlayers.map(p => [p.name, p.id]));
+  const localPlayerIdSet = new Set(localPlayers.map(p => p.id));
+
+  // Prepare players to sync - use upstream ID, otherwise mark w/ negative IDs
+  // This makes them easy to query later: SELECT * FROM players WHERE id < 0
+  const negativeIds = localPlayers.filter(p => p.id < 0).map(p => p.id);
+  const minNegativeId = negativeIds.length > 0 ? Math.min(...negativeIds) : 0;
+  let nextNegativeId = minNegativeId - 1;
   
-  if (newPlayers.length > 0) {
+  const playersToSync: { id: number; name: string }[] = [];
+  
+  for (const playerName of playerNames) {
+    if (localPlayerNameMap.has(playerName)) {
+      // Already exists locally, skip
+      continue;
+    }
+    
+    // Use upstream ID if available, otherwise assign negative ID
+    let id = upstreamPlayerMap.get(playerName) ?? nextNegativeId--;
+    
+    // If the upstream ID already exists locally (different player), use a negative ID instead
+    if (id !== undefined && id !== null && id > 0 && localPlayerIdSet.has(id)) {
+      console.warn(`  Warning: Player ID ${id} already exists locally for a different player. Player "${playerName}" will be assigned temporary ID ${nextNegativeId}`);
+      id = nextNegativeId--;
+    }
+    
+    playersToSync.push({ id, name: playerName });
+
+    if (id < 0) {
+      console.warn(`  Warning: Player "${playerName}" does not exist upstream, assigned temporary ID ${id}`);
+    }
+  }
+  
+  if (playersToSync.length > 0) {
     await local`
-      INSERT INTO players ${local(newPlayers, 'id', 'name')}
-      ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name;
+      INSERT INTO players ${local(playersToSync, 'id', 'name')}
+      ON CONFLICT (name) DO NOTHING;
     `;
   }
   
-  console.log(`Synced ${newPlayers.length} new player(s).\n`);
-  return newPlayers.length;
+  console.log(`Synced ${playersToSync.length} new player(s).\n`);
+  return playersToSync.length;
 }
 
 async function syncEvents(events: EventRecord[]): Promise<number> {
