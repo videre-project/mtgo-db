@@ -333,6 +333,44 @@ psql -h localhost -p 5433 -U your_username -d mtgo
 
 Use your configured tunnel hostname with port 6432. Authentication is handled through Cloudflare Access. The tunnel connects to Pgpool-II, so remote users automatically benefit from read/write splitting.
 
+#### Tailscale Remote Access
+
+If you have [Tailscale](https://tailscale.com/) set up, you can access the database from any device on your tailnet without needing a Cloudflare Tunnel.
+
+1. **Get your Tailscale IP:**
+
+   ```bash
+   tailscale ip -4
+   ```
+
+2. **Add it to your `.env` file:**
+
+   ```env
+   TAILSCALE_IP=100.x.x.x  # Replace with your actual Tailscale IP
+   ```
+
+3. **Restart the containers:**
+
+   ```bash
+   pnpm stop && pnpm start
+   ```
+
+4. **Connect from another Tailscale device:**
+
+   ```bash
+   # Via Pgpool (recommended)
+   psql -h 100.x.x.x -p 6432 -U your_username -d mtgo
+
+   # Direct to PostgreSQL
+   psql -h 100.x.x.x -p 5433 -U your_username -d mtgo
+
+   # PostgREST API
+   curl http://100.x.x.x:3000/events
+   ```
+
+> [!NOTE]
+> If `TAILSCALE_IP` is not set, the database remains accessible only on localhost. This is safe for machines without Tailscale installed.
+
 #### Read-Only API User
 
 An `api` user is configured with passwordless read-only access. All queries from this user are automatically routed to read replicas:
@@ -370,6 +408,7 @@ All configuration is managed through environment variables in the `.env` file:
 - `POSTGRES_PASSWORD` - Database password
 - `POSTGRES_DB` - Database name
 - `POSTGRES_PORT` - Pgpool-II port (default: 6432)
+- `TAILSCALE_IP` - Your machine's Tailscale IP for remote access (optional, see [Tailscale Remote Access](#tailscale-remote-access))
 - `CLOUDFLARED_TUNNEL_HOSTNAME` - Cloudflare tunnel hostname
 - `CLOUDFLARED_TUNNEL_NAME` - Cloudflare tunnel name
 - `CLOUDFLARED_TUNNEL_ID` - Cloudflare tunnel ID

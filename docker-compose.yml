@@ -1,7 +1,7 @@
 name: mtgo-db
 services:
   postgres:
-    image: postgres:latest
+    image: postgres:17
     container_name: postgres-prod
     restart: unless-stopped
     environment:
@@ -29,6 +29,7 @@ services:
       - ./postgres/dump:/pg/dump:ro
     ports:
       - "127.0.0.1:5433:5432"
+      - "${TAILSCALE_IP:-127.0.0.1}:5433:5432"
     command:
       - "postgres"
       - "-c"
@@ -47,7 +48,7 @@ services:
   
   # Automated backup service - monitors database and backs up after writes
   backup:
-    image: postgres:latest
+    image: postgres:17
     container_name: postgres-backup
     restart: unless-stopped
     depends_on:
@@ -127,7 +128,7 @@ services:
       - cloudflared
 
   postgres-replica:
-    image: postgres:latest
+    image: postgres:17
     container_name: postgres-replica-prod
     restart: unless-stopped
     depends_on:
@@ -162,6 +163,7 @@ services:
         condition: service_started
     ports:
       - "127.0.0.1:6432:9999"
+      - "${TAILSCALE_IP:-127.0.0.1}:6432:9999"
     environment:
       - POSTGRES_USERNAME=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -217,6 +219,7 @@ services:
       PGRST_OPENAPI_SERVER_PROXY_URI: https://${CLOUDFLARED_TUNNEL_HOSTNAME}
     ports:
       - "127.0.0.1:3000:3000"
+      - "${TAILSCALE_IP:-127.0.0.1}:3000:3000"
     networks:
       - cloudflared
   
