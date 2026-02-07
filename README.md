@@ -110,6 +110,16 @@ To stop all services:
 pnpm stop
 ```
 
+### Local Development Bridge
+
+To start the local tunnel bridge for connecting to the remote database:
+
+```bash
+pnpm run bridge
+```
+
+This is required for local API development or connecting GUI tools to the database via the tunnel.
+
 ### Viewing Logs
 
 To view real-time logs from all containers:
@@ -331,6 +341,18 @@ psql -h localhost -p 5433 -U your_username -d mtgo
 
 #### Remote Connection (via Cloudflare Tunnel)
 
+**For Local Development (Recommended):**
+
+We provide a bridge script that creates a local TCP listener forwarding traffic through the tunnel:
+
+```bash
+pnpm run bridge
+```
+
+ This starts a local listener at `127.0.0.1:5432` that securely tunnels traffic to the production database. You can then connect your local API or tools to `localhost:5432` (User: `api`, SSL: `false`).
+
+**For Manual Connection:**
+
 Use your configured tunnel hostname with port 6432. Authentication is handled through Cloudflare Access. The tunnel connects to Pgpool-II, so remote users automatically benefit from read/write splitting.
 
 #### Tailscale Remote Access
@@ -379,13 +401,14 @@ An `api` user is configured with passwordless read-only access. All queries from
 psql -h localhost -p 6432 -U api -d mtgo
 ```
 
-Or via Cloudflare Tunnel:
+Or via the Local Bridge (Recommended):
 
 ```bash
-psql -h db1.videreproject.com -p 6432 -U api -d mtgo
+# In a separate terminal run: pnpm run bridge
+psql -h localhost -p 5432 -U api -d mtgo
 ```
 
-Connection string: `postgres://api@db1.videreproject.com:6432/mtgo`
+Connection string (Bridge): `postgres://api@127.0.0.1:5432/mtgo?sslmode=disable`
 
 ## Database Schema
 
@@ -441,6 +464,15 @@ Pgpool-II is configured with:
 - **Failover**: Disabled (use external orchestration for production failover)
 
 The primary database is marked with `ALWAYS_PRIMARY|DISALLOW_TO_FAILOVER` to prevent accidental promotion of the replica. You should implement your own failover strategy for production use.
+
+### Security Configuration
+
+Security is enforced at multiple layers:
+
+- **Pgpool (`pool_hba.conf`)**: Controls access to the connection pooler.
+- **Postgres (`pg_hba.conf`)**: Controls access to the backend database. This file is mounted from `./postgres/pg_hba.conf` to ensure consistent security rules across environments.
+  - The `api` user is trusted (passwordless) but only accessible via the Pgpool layer.
+  - All other users (`videre1`, `postgres`) require SCRAM-SHA-256 password authentication.
 
 ## Troubleshooting
 

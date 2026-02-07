@@ -27,11 +27,14 @@ services:
       - ./postgres/api_user.sql:/pg/api_user.sql:ro
       # Mount dump directory for migrations
       - ./postgres/dump:/pg/dump:ro
+      - ./postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
     ports:
       - "127.0.0.1:5433:5432"
       - "${TAILSCALE_IP:-127.0.0.1}:5433:5432"
     command:
       - "postgres"
+      - "-c"
+      - "hba_file=/etc/postgresql/pg_hba.conf"
       - "-c"
       - "wal_level=replica"
       - "-c"
@@ -65,7 +68,7 @@ services:
     entrypoint: >
       sh -c '
         echo "Backup service started."
-        echo "Will backup $(BACKUP_AFTER_WRITE_DELAY)s after database writes, minimum $(MIN_BACKUP_INTERVAL)s between backups."
+        echo "Will backup $${BACKUP_AFTER_WRITE_DELAY}s after database writes, minimum $${MIN_BACKUP_INTERVAL}s between backups."
         
         LAST_BACKUP_TIME=0
         LAST_WRITE_TIME=0
@@ -136,12 +139,13 @@ services:
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    user: postgres
     volumes:
       - postgres-data-replica:/var/lib/postgresql/data
     entrypoint: >
       bash -c "
         rm -rf /var/lib/postgresql/data/* &&
-        until pg_basebackup --pgdata=/var/lib/postgresql/data -R --slot=replication_slot --host=postgres --username=${POSTGRES_USER} --password=${POSTGRES_PASSWORD}
+        until PGPASSWORD=${POSTGRES_PASSWORD} pg_basebackup --pgdata=/var/lib/postgresql/data -R -C --slot=replication_slot --host=postgres --username=${POSTGRES_USER}
         do
           echo 'Waiting for primary to connect...'
           sleep 1s

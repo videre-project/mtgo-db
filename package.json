@@ -10,6 +10,7 @@
     "merge-dump": "pnpm run ts scripts/merge-dump.ts",
     "test-events": "pnpm run ts scripts/test-events.ts",
     "sync-upstream": "pnpm run ts scripts/sync-upstream.ts",
+    "bridge": "pnpm run ts scripts/start-bridge.ts",
     "start": "docker compose up -d --no-recreate",
     "stop": "docker compose down",
     "logs": "docker compose logs -f"
