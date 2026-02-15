@@ -206,33 +206,13 @@ services:
     networks:
       - cloudflared
   
-  postgrest:
-    image: postgrest/postgrest:latest
-    container_name: postgrest-api
-    restart: unless-stopped
-    depends_on:
-      pgpool:
-        condition: service_started
-    environment:
-      # Connect through pgpool for load balancing and failover
-      PGRST_DB_URI: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@pgpool-prod:9999/${POSTGRES_DB}
-      PGRST_DB_ANON_ROLE: api
-      PGRST_DB_SCHEMA: public
-      PGRST_SERVER_PORT: 3000
-      # Enable OpenAPI documentation
-      PGRST_OPENAPI_SERVER_PROXY_URI: https://${CLOUDFLARED_TUNNEL_HOSTNAME}
-    ports:
-      - "127.0.0.1:3000:3000"
-      - "${TAILSCALE_IP:-127.0.0.1}:3000:3000"
-    networks:
-      - cloudflared
   
   cloudflared:
     image: cloudflare/cloudflared:latest
     container_name: cloudflared-tunnel
     restart: unless-stopped
     depends_on:
-      - postgrest
+      - pgpool
     command: tunnel --no-autoupdate --config /etc/cloudflared/config.yml run
     environment:
       - CLOUDFLARED_TUNNEL_NAME=${CLOUDFLARED_TUNNEL_NAME}
