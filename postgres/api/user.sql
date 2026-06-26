@@ -56,7 +56,8 @@ GRANT SELECT ON TABLE
   matches,
   oracle_cards,
   products,
-  sets
+  sets,
+  standings
 TO api;
 
 DO $$
