@@ -145,15 +145,21 @@ services:
       - postgres-data-replica:/var/lib/postgresql/data
     entrypoint: >
       bash -c "
+        # If data directory already has a valid PG cluster, just start.
+        if [ -f /var/lib/postgresql/data/PG_VERSION ]; then
+          echo 'Existing replica data found, starting replica...'
+          exec postgres
+        fi
+
         rm -rf /var/lib/postgresql/data/* &&
-        until PGPASSWORD=${POSTGRES_PASSWORD} pg_basebackup --pgdata=/var/lib/postgresql/data -R -C --slot=replication_slot --host=postgres --username=${POSTGRES_USER}
+        until PGPASSWORD=${POSTGRES_PASSWORD} pg_basebackup --pgdata=/var/lib/postgresql/data -R -S replication_slot --host=postgres --username=${POSTGRES_USER}
         do
           echo 'Waiting for primary to connect...'
-          sleep 1s
+          sleep 5s
         done
         echo 'Backup created, starting replica...'
         chmod 0700 /var/lib/postgresql/data &&
-        postgres
+        exec postgres
       "
     networks:
       - cloudflared
@@ -201,6 +207,7 @@ services:
       - PGPOOL_PARAMS_LOG_HOSTNAME=on
       - PGPOOL_PARAMS_NUM_INIT_CHILDREN=32
       - PGPOOL_PARAMS_MAX_POOL=4
+    command: sh -c "rm -f /run/pgpool/pgpool.pid 2>/dev/null; exec /opt/pgpool-II/bin/start.sh"
     volumes:
       - ./pgpool/pool_hba.conf:/usr/local/etc/pool_hba.conf:ro
       - ./pgpool/pool_passwd:/usr/local/etc/pool_passwd:ro
