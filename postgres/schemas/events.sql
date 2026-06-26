@@ -6,16 +6,6 @@ CREATE TABLE Players (
   name      PlayerName UNIQUE
 );
 
-CREATE TYPE FormatType AS ENUM (
-  'Standard',
-  'Modern',
-  'Pioneer',
-  'Vintage',
-  'Legacy',
-  'Pauper',
-  'Premodern'
-);
-
 CREATE TYPE EventType as ENUM (
   'League',
   'Preliminary',
@@ -23,6 +13,33 @@ CREATE TYPE EventType as ENUM (
   'Showcase',
   'Qualifier'
 );
+
+DO $$
+DECLARE
+  format_name TEXT;
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_type
+    WHERE typname = 'formattype'
+  ) THEN
+    EXECUTE format(
+      'CREATE TYPE FormatType AS ENUM (%s)',
+      (
+        SELECT string_agg(quote_literal(value), ', ')
+        FROM format_type_constants() AS formats(value)
+      )
+    );
+  END IF;
+
+  FOR format_name IN
+    SELECT value
+    FROM format_type_constants() AS formats(value)
+  LOOP
+    EXECUTE format('ALTER TYPE FormatType ADD VALUE IF NOT EXISTS %L', format_name);
+  END LOOP;
+END
+$$;
 
 CREATE TABLE Events (
   id        INT PRIMARY KEY,

@@ -22,9 +22,10 @@ services:
       - ./postgres/initdb.d:/docker-entrypoint-initdb.d:ro
       # Include additional SQL files in /pg
       - ./postgres/extensions.sql:/pg/extensions.sql:ro
-      - ./postgres/schema.sql:/pg/schema.sql:ro
+      - ./postgres/constants.sql:/pg/constants.sql:ro
+      - ./postgres/schemas:/pg/schemas:ro
+      - ./postgres/api:/pg/api:ro
       - ./postgres/indexes.sql:/pg/indexes.sql:ro
-      - ./postgres/api_user.sql:/pg/api_user.sql:ro
       # Mount dump directory for migrations
       - ./postgres/dump:/pg/dump:ro
       - ./postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
