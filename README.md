@@ -341,19 +341,36 @@ psql -h localhost -p 5433 -U your_username -d mtgo
 
 #### Remote Connection (via Cloudflare Tunnel)
 
-**For Local Development (Recommended):**
+The Cloudflare Tunnel exposes Pgpool-II for direct PostgreSQL clients. Public
+access is intentionally read-only through the `public_api` role; administrative
+users should use localhost or Tailscale with their own credentials instead.
 
-We provide a bridge script that creates a local TCP listener forwarding traffic through the tunnel:
+**For Public Read-Only SQL:**
+
+We provide a bridge script that creates a local TCP listener forwarding traffic
+through the tunnel:
 
 ```bash
 pnpm run bridge
 ```
 
- This starts a local listener at `127.0.0.1:5432` that securely tunnels traffic to the production database. You can then connect your local API or tools to `localhost:5432` (User: `api`, SSL: `false`).
+This starts a local listener at `127.0.0.1:5432` and forwards traffic to the
+production Pgpool endpoint. Connect with the passwordless read-only user:
 
-**For Manual Connection:**
+```bash
+psql 'postgres://public_api@127.0.0.1:5432/mtgo?sslmode=disable'
+```
 
-Use your configured tunnel hostname with port 6432. Authentication is handled through Cloudflare Access. The tunnel connects to Pgpool-II, so remote users automatically benefit from read/write splitting.
+The equivalent manual Cloudflared command is:
+
+```bash
+cloudflared access tcp \
+  --hostname db1.videreproject.com \
+  --url 127.0.0.1:5432
+```
+
+The tunnel connects to Pgpool-II, so read traffic uses the replica path where
+Pgpool can safely route it.
 
 #### Tailscale Remote Access
 
@@ -393,22 +410,44 @@ If you have [Tailscale](https://tailscale.com/) set up, you can access the datab
 > [!NOTE]
 > If `TAILSCALE_IP` is not set, the database remains accessible only on localhost. This is safe for machines without Tailscale installed.
 
-#### Read-Only API User
+#### Read-Only SQL Users
 
-An `api` user is configured with passwordless read-only access. All queries from this user are automatically routed to read replicas:
+Two read-only login roles are configured:
+
+- `api` is the first-party service user used by Workers and internal tools.
+- `public_api` is the passwordless public SQL user for exploratory access to
+  public MTGO data.
+
+Neither role is an administrative account or write path. `public_api` has the
+stricter public-resource guardrails.
+
+`public_api` is constrained with:
+
+- read-only default transactions
+- no schema ownership or mutation privileges
+- limited connection count
+- statement, lock, idle-session, and temporary-file limits
+
+Local Pgpool connection:
 
 ```bash
-psql -h localhost -p 6432 -U api -d mtgo
+psql -h localhost -p 6432 -U public_api -d mtgo
 ```
 
-Or via the Local Bridge (Recommended):
+Cloudflare Tunnel bridge:
 
 ```bash
 # In a separate terminal run: pnpm run bridge
-psql -h localhost -p 5432 -U api -d mtgo
+psql -h localhost -p 5432 -U public_api -d mtgo
 ```
 
-Connection string (Bridge): `postgres://api@127.0.0.1:5432/mtgo?sslmode=disable`
+Connection string (Bridge): `postgres://public_api@127.0.0.1:5432/mtgo?sslmode=disable`
+
+To verify the public role guardrails after a role or Pgpool change:
+
+```bash
+pnpm run check-public-api-user
+```
 
 ## Database Schema
 
@@ -431,6 +470,7 @@ All configuration is managed through environment variables in the `.env` file:
 - `POSTGRES_PASSWORD` - Database password
 - `POSTGRES_DB` - Database name
 - `POSTGRES_PORT` - Pgpool-II port (default: 6432)
+- `API_PASSWORD` - Password for the first-party `api` service role used by Workers
 - `TAILSCALE_IP` - Your machine's Tailscale IP for remote access (optional, see [Tailscale Remote Access](#tailscale-remote-access))
 - `CLOUDFLARED_TUNNEL_HOSTNAME` - Cloudflare tunnel hostname
 - `CLOUDFLARED_TUNNEL_NAME` - Cloudflare tunnel name
@@ -471,7 +511,7 @@ Security is enforced at multiple layers:
 
 - **Pgpool (`pool_hba.conf`)**: Controls access to the connection pooler.
 - **Postgres (`pg_hba.conf`)**: Controls access to the backend database. This file is mounted from `./postgres/pg_hba.conf` to ensure consistent security rules across environments.
-  - The `api` user is trusted (passwordless) but only accessible via the Pgpool layer.
+  - The `public_api` user is trusted/passwordless but only for bounded read-only access via Pgpool.
   - All other users (`videre1`, `postgres`) require SCRAM-SHA-256 password authentication.
 
 ## Troubleshooting

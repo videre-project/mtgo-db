@@ -1,7 +1,15 @@
--- The API role can read public data and execute stable read-only helpers, but
--- it does not own or mutate schema objects.
+-- API-facing readers share one grant role, while each login keeps its own
+-- connection/resource policy.
 DO $$
 BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_catalog.pg_roles
+    WHERE rolname = 'api_reader'
+  ) THEN
+    CREATE ROLE api_reader NOLOGIN;
+  END IF;
+
   IF NOT EXISTS (
     SELECT 1
     FROM pg_catalog.pg_roles
@@ -9,21 +17,72 @@ BEGIN
   ) THEN
     CREATE USER api WITH PASSWORD 'replace_with_a_strong_password';
   END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_catalog.pg_roles
+    WHERE rolname = 'public_api'
+  ) THEN
+    CREATE USER public_api;
+  END IF;
 END
 $$;
 
-ALTER ROLE api WITH LOGIN NOREPLICATION NOSUPERUSER NOCREATEDB NOCREATEROLE;
+ALTER ROLE api_reader WITH
+  NOLOGIN
+  NOREPLICATION
+  NOSUPERUSER
+  NOCREATEDB
+  NOCREATEROLE;
+
+-- Service role for videre-api and other first-party consumers. This remains
+-- read-only by privilege, but avoids the stricter public connection limits.
+ALTER ROLE api WITH
+  LOGIN
+  NOREPLICATION
+  NOSUPERUSER
+  NOCREATEDB
+  NOCREATEROLE
+  CONNECTION LIMIT -1;
+
 ALTER ROLE api SET statement_timeout = '10s';
+ALTER ROLE api RESET default_transaction_read_only;
+ALTER ROLE api RESET idle_in_transaction_session_timeout;
+ALTER ROLE api RESET idle_session_timeout;
+ALTER ROLE api RESET lock_timeout;
+ALTER ROLE api RESET temp_file_limit;
+ALTER ROLE api RESET work_mem;
 
-REVOKE ALL PRIVILEGES ON DATABASE mtgo FROM api;
-GRANT CONNECT ON DATABASE mtgo TO api;
+-- Anonymous public SQL role. Pgpool/HBA can trust this login because the role
+-- itself is constrained to read-only, bounded exploratory access.
+ALTER ROLE public_api WITH
+  LOGIN
+  NOREPLICATION
+  NOSUPERUSER
+  NOCREATEDB
+  NOCREATEROLE
+  CONNECTION LIMIT 20;
 
-REVOKE ALL PRIVILEGES ON SCHEMA public FROM api;
-GRANT USAGE ON SCHEMA public TO api;
+ALTER ROLE public_api SET default_transaction_read_only = on;
+ALTER ROLE public_api SET statement_timeout = '5s';
+ALTER ROLE public_api SET idle_in_transaction_session_timeout = '15s';
+ALTER ROLE public_api SET idle_session_timeout = '60s';
+ALTER ROLE public_api SET lock_timeout = '500ms';
+ALTER ROLE public_api SET temp_file_limit = '64MB';
+ALTER ROLE public_api SET work_mem = '4MB';
 
-REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM api;
-REVOKE ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public FROM api;
-REVOKE ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public FROM api;
+GRANT api_reader TO api;
+GRANT api_reader TO public_api;
+
+REVOKE ALL PRIVILEGES ON DATABASE mtgo FROM api, public_api, api_reader;
+GRANT CONNECT ON DATABASE mtgo TO api_reader;
+
+REVOKE ALL PRIVILEGES ON SCHEMA public FROM api, public_api, api_reader;
+GRANT USAGE ON SCHEMA public TO api_reader;
+
+REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM api, public_api, api_reader;
+REVOKE ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public FROM api, public_api, api_reader;
+REVOKE ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public FROM api, public_api, api_reader;
 
 DO $$
 DECLARE
@@ -58,7 +117,7 @@ GRANT SELECT ON TABLE
   products,
   sets,
   standings
-TO api;
+TO api_reader;
 
 DO $$
 DECLARE
@@ -81,10 +140,12 @@ BEGIN
         )
       )
   LOOP
-    EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO api', api_function);
+    EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO api_reader', api_function);
   END LOOP;
 END
 $$;
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE SELECT ON TABLES FROM api;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE SELECT ON TABLES FROM public_api;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE SELECT ON TABLES FROM api_reader;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC;

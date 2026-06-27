@@ -4,6 +4,7 @@
     "ts": "node --no-warnings --experimental-strip-types",
     "setup-tunnel": "pnpm run ts scripts/setup-tunnel.ts",
     "test-tunnel": "pnpm run ts scripts/test-tunnel.ts",
+    "check-public-api-user": "pnpm run ts scripts/check-public-api-user.ts",
     "list-tables": "pnpm run ts scripts/list-tables.ts",
     "export-dump": "pnpm run ts scripts/export-dump.ts",
     "import-dump": "pnpm run ts scripts/import-dump.ts",

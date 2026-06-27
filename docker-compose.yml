@@ -143,12 +143,13 @@ services:
     user: postgres
     volumes:
       - postgres-data-replica:/var/lib/postgresql/data
+      - ./postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
     entrypoint: >
       bash -c "
         # If data directory already has a valid PG cluster, just start.
         if [ -f /var/lib/postgresql/data/PG_VERSION ]; then
           echo 'Existing replica data found, starting replica...'
-          exec postgres
+          exec postgres -c hba_file=/etc/postgresql/pg_hba.conf
         fi
 
         rm -rf /var/lib/postgresql/data/* &&
@@ -159,7 +160,7 @@ services:
         done
         echo 'Backup created, starting replica...'
         chmod 0700 /var/lib/postgresql/data &&
-        exec postgres
+        exec postgres -c hba_file=/etc/postgresql/pg_hba.conf
       "
     networks:
       - cloudflared
@@ -178,6 +179,8 @@ services:
     environment:
       - POSTGRES_USERNAME=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - API_USERNAME=api
+      - API_PASSWORD=${API_PASSWORD}
       - PGPOOL_PARAMS_BACKEND_HOSTNAME0=postgres
       - PGPOOL_PARAMS_BACKEND_PORT0=5432
       - PGPOOL_PARAMS_BACKEND_WEIGHT0=0
@@ -207,6 +210,9 @@ services:
       - PGPOOL_PARAMS_LOG_HOSTNAME=on
       - PGPOOL_PARAMS_NUM_INIT_CHILDREN=32
       - PGPOOL_PARAMS_MAX_POOL=4
+      - PGPOOL_PARAMS_CHILD_LIFE_TIME=300
+      - PGPOOL_PARAMS_CLIENT_IDLE_LIMIT=60
+      - PGPOOL_PARAMS_CONNECTION_LIFE_TIME=300
     command: sh -c "rm -f /run/pgpool/pgpool.pid 2>/dev/null; exec /opt/pgpool-II/bin/start.sh"
     volumes:
       - ./pgpool/pool_hba.conf:/usr/local/etc/pool_hba.conf:ro

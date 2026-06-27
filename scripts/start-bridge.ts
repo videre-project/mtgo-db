@@ -23,7 +23,7 @@ const main = async () => {
   console.log(`Remote: ${tunnelHostname}`);
   console.log(`Local:  ${localHost}:${localPort}`);
   console.log(`\nRun the following to connect:`);
-  console.log(`psql -h ${localHost} -p ${localPort} -U videre1 -d mtgo`);
+  console.log(`psql -h ${localHost} -p ${localPort} -U public_api -d mtgo`);
   console.log(`\n(Press Ctrl+C to stop)\n`);
 
   const accessProcess = spawn(
