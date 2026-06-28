@@ -15,9 +15,14 @@ if (!await import('node:fs').then(fs => fs.promises.access(bin).then(() => true)
 // Local forwarding port for cloudflared access
 const localPort = 8000;
 const localHost = '127.0.0.1';
+const tunnelHostname = process.env.CLOUDFLARED_PUBLIC_HOSTNAME;
 
-console.log(`Starting cloudflared access tunnel to ${process.env.CLOUDFLARED_TUNNEL_HOSTNAME}...`);
-console.log(`Forwarding ${localHost}:${localPort} -> ${process.env.CLOUDFLARED_TUNNEL_HOSTNAME}:${process.env.POSTGRES_PORT}\n`);
+if (!tunnelHostname) {
+  throw new Error('CLOUDFLARED_PUBLIC_HOSTNAME is required.');
+}
+
+console.log(`Starting cloudflared access tunnel to ${tunnelHostname}...`);
+console.log(`Forwarding ${localHost}:${localPort} -> ${tunnelHostname}:5432\n`);
 
 // Run cloudflared access to forward the connection
 const accessProcess = spawn(
@@ -25,7 +30,7 @@ const accessProcess = spawn(
   [
     'access', 
     'tcp', 
-    '--hostname', process.env.CLOUDFLARED_TUNNEL_HOSTNAME!, 
+    '--hostname', tunnelHostname,
     '--url', `${localHost}:${localPort}`
   ], 
   { stdio: 'pipe' }
@@ -37,8 +42,7 @@ await setTimeout(2000);
 const sql = postgres({
   host: localHost,
   port: localPort,
-  user: process.env.POSTGRES_USER,
-  password: process.env.POSTGRES_PASSWORD,
+  user: 'public_api',
   database: process.env.POSTGRES_DB,
 });
 

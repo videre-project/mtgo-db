@@ -132,7 +132,8 @@ Or view logs for specific services:
 
 ```bash
 docker compose logs -f postgres          # Primary database
-docker compose logs -f pgpool            # Connection pooler
+docker compose logs -f pgpool-public     # Public SQL connection pooler
+docker compose logs -f pgpool-internal   # Worker/API connection pooler
 docker compose logs -f backup            # Backup service
 docker compose logs -f postgres-replica  # Read replica
 ```
@@ -341,9 +342,14 @@ psql -h localhost -p 5433 -U your_username -d mtgo
 
 #### Remote Connection (via Cloudflare Tunnel)
 
-The Cloudflare Tunnel exposes Pgpool-II for direct PostgreSQL clients. Public
-access is intentionally read-only through the `public_api` role; administrative
-users should use localhost or Tailscale with their own credentials instead.
+The Cloudflare Tunnel exposes two Pgpool-II services for direct PostgreSQL
+clients:
+
+- `public-db.videreproject.com` routes to the public pool and only allows the
+  passwordless, read-only `public_api` role.
+- `worker-db.videreproject.com` routes to the Worker/internal pool and is
+  protected by Cloudflare Access Service Auth. It is used by first-party
+  Workers connecting as `api`.
 
 **For Public Read-Only SQL:**
 
@@ -365,7 +371,7 @@ The equivalent manual Cloudflared command is:
 
 ```bash
 cloudflared access tcp \
-  --hostname db1.videreproject.com \
+  --hostname public-db.videreproject.com \
   --url 127.0.0.1:5432
 ```
 
@@ -402,9 +408,6 @@ If you have [Tailscale](https://tailscale.com/) set up, you can access the datab
 
    # Direct to PostgreSQL
    psql -h 100.x.x.x -p 5433 -U your_username -d mtgo
-
-   # PostgREST API
-   curl http://100.x.x.x:3000/events
    ```
 
 > [!NOTE]
@@ -428,10 +431,16 @@ stricter public-resource guardrails.
 - limited connection count
 - statement, lock, idle-session, and temporary-file limits
 
-Local Pgpool connection:
+Local public Pgpool connection:
 
 ```bash
-psql -h localhost -p 6432 -U public_api -d mtgo
+psql -h localhost -p 6434 -U public_api -d mtgo
+```
+
+Local Worker/API Pgpool connection:
+
+```bash
+psql -h localhost -p 6432 -U api -d mtgo
 ```
 
 Cloudflare Tunnel bridge:
@@ -469,12 +478,15 @@ All configuration is managed through environment variables in the `.env` file:
 - `POSTGRES_USER` - Database username (used for admin access)
 - `POSTGRES_PASSWORD` - Database password
 - `POSTGRES_DB` - Database name
-- `POSTGRES_PORT` - Pgpool-II port (default: 6432)
+- `POSTGRES_PORT` - Internal Pgpool-II port for first-party API traffic (default: 6432)
 - `API_PASSWORD` - Password for the first-party `api` service role used by Workers
 - `TAILSCALE_IP` - Your machine's Tailscale IP for remote access (optional, see [Tailscale Remote Access](#tailscale-remote-access))
-- `CLOUDFLARED_TUNNEL_HOSTNAME` - Cloudflare tunnel hostname
+- `CLOUDFLARED_PUBLIC_HOSTNAME` - Public Cloudflare tunnel hostname for `public_api`
+- `CLOUDFLARED_WORKER_HOSTNAME` - Worker-only Cloudflare tunnel hostname for `api`
 - `CLOUDFLARED_TUNNEL_NAME` - Cloudflare tunnel name
 - `CLOUDFLARED_TUNNEL_ID` - Cloudflare tunnel ID
+- `CLOUDFLARE_API_TOKEN` - Optional setup token used to create/update tunnel DNS records
+- `CLOUDFLARE_ZONE_NAME` - Optional DNS zone override for tunnel setup
 - `BACKUP_AFTER_WRITE_DELAY` - Seconds to wait after last write before backing up (default: 300)
 - `MIN_BACKUP_INTERVAL` - Minimum seconds between backups (default: 3600)
 
@@ -557,8 +569,8 @@ If the read replica fails to start:
 
 If Pgpool-II is not routing queries correctly:
 
-1. Check Pgpool logs: `docker compose logs pgpool`
-2. Verify backend status: `docker compose exec pgpool psql -h localhost -p 9999 -U postgres -c "SHOW POOL_NODES;"`
+1. Check Pgpool logs: `docker compose logs pgpool-public pgpool-internal`
+2. Verify backend status: `docker compose exec pgpool-internal psql -h localhost -p 9999 -U postgres -c "SHOW POOL_NODES;"`
 3. Ensure both primary and replica are healthy before Pgpool starts
 
 ## License
@@ -592,10 +604,10 @@ To verify that queries are being routed correctly:
 
 ```bash
 # View Pgpool statistics
-docker compose exec pgpool psql -h localhost -p 9999 -U postgres -c "SHOW POOL_NODES;"
+docker compose exec pgpool-internal psql -h localhost -p 9999 -U postgres -c "SHOW POOL_NODES;"
 
 # Monitor query distribution
-docker compose logs -f pgpool | grep "SELECT"
+docker compose logs -f pgpool-public pgpool-internal | grep "SELECT"
 ```
 
 ## Disclaimer

@@ -12,21 +12,26 @@ if (!await import('node:fs').then(fs => fs.promises.access(bin).then(() => true)
   await install(bin);
 }
 
-const tunnelLocalPort = 8000;
+const tunnelLocalPort = 18_000;
 const localHost = '127.0.0.1';
+const tunnelHostname = process.env.CLOUDFLARED_PUBLIC_HOSTNAME;
 
-console.log(`Testing tunnel connection to ${process.env.CLOUDFLARED_TUNNEL_HOSTNAME}...`);
+if (!tunnelHostname) {
+  throw new Error('CLOUDFLARED_PUBLIC_HOSTNAME is required.');
+}
+
+console.log(`Testing tunnel connection to ${tunnelHostname}...`);
 console.log(`Database: ${process.env.POSTGRES_DB}\n`);
 
 console.log('Test 1: Direct local connection');
-console.log(`Connecting to ${localHost}:${process.env.POSTGRES_PORT}`);
+console.log(`Connecting to ${localHost}:6434`);
 
 const sqlDirect = postgres({
   host: localHost,
-  port: parseInt(process.env.POSTGRES_PORT || '6432'),
-  user: process.env.POSTGRES_USER,
-  password: process.env.POSTGRES_PASSWORD,
+  port: 6434,
+  user: 'public_api',
   database: process.env.POSTGRES_DB,
+  connect_timeout: 10,
 });
 
 try {
@@ -44,28 +49,28 @@ try {
 await sqlDirect.end();
 
 console.log('Test 2: Cloudflare tunnel connection');
-console.log(`Forwarding ${localHost}:${tunnelLocalPort} -> ${process.env.CLOUDFLARED_TUNNEL_HOSTNAME}:${process.env.POSTGRES_PORT}`);
+console.log(`Forwarding ${localHost}:${tunnelLocalPort} -> ${tunnelHostname}:5432`);
 
 const accessProcess = spawn(
   bin, 
   [
     'access', 
     'tcp', 
-    '--hostname', process.env.CLOUDFLARED_TUNNEL_HOSTNAME!, 
+    '--hostname', tunnelHostname,
     '--url', `${localHost}:${tunnelLocalPort}`
   ], 
-  { stdio: 'pipe' }
+  { stdio: 'inherit' }
 );
 
 // Wait for cloudflared to establish connection
-await setTimeout(3000);
+await setTimeout(3_000);
 
 const sqlTunnel = postgres({
   host: localHost,
   port: tunnelLocalPort,
-  user: process.env.POSTGRES_USER,
-  password: process.env.POSTGRES_PASSWORD,
+  user: 'public_api',
   database: process.env.POSTGRES_DB,
+  connect_timeout: 10,
 });
 
 async function testTunnelConnection(): Promise<void> {

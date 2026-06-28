@@ -13,7 +13,9 @@ const main = async () => {
     await install(bin);
   }
 
-  const tunnelHostname = process.env.CLOUDFLARED_TUNNEL_HOSTNAME || 'db1.videreproject.com';
+  const tunnelHostname =
+    process.env.CLOUDFLARED_PUBLIC_HOSTNAME
+    ?? 'public-db.videreproject.com';
   // Use standard Postgres port 5432 so that when we spoof DNS, it looks like a real server.
   // Make sure to stop any local postgres service running on 5432 before running this!
   const localPort = 5432;

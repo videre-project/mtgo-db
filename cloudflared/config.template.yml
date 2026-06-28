@@ -1,6 +1,8 @@
 tunnel: ${CLOUDFLARED_TUNNEL_ID}
 credentials-file: /etc/cloudflared/${CLOUDFLARED_TUNNEL_ID}.json
 ingress:
-  - hostname: ${CLOUDFLARED_TUNNEL_HOSTNAME}
-    service: http://postgrest:3000
+  - hostname: ${CLOUDFLARED_PUBLIC_HOSTNAME}
+    service: tcp://pgpool-public:9999
+  - hostname: ${CLOUDFLARED_WORKER_HOSTNAME}
+    service: tcp://pgpool-internal:9999
   - service: http_status:404

@@ -1,4 +1,54 @@
 name: mtgo-db
+x-pgpool-common: &pgpool-common
+  image: pgpool/pgpool:latest
+  restart: unless-stopped
+  depends_on:
+    postgres:
+      condition: service_healthy
+    postgres-replica:
+      condition: service_started
+  environment: &pgpool-environment
+    POSTGRES_USERNAME: ${POSTGRES_USER}
+    POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    API_USERNAME: api
+    API_PASSWORD: ${API_PASSWORD}
+    PGPOOL_PARAMS_ENABLE_POOL_HBA: "on"
+    PGPOOL_PARAMS_BACKEND_HOSTNAME0: postgres
+    PGPOOL_PARAMS_BACKEND_PORT0: 5432
+    PGPOOL_PARAMS_BACKEND_WEIGHT0: 0
+    PGPOOL_PARAMS_BACKEND_DATA_DIRECTORY0: /var/lib/postgresql/data
+    PGPOOL_PARAMS_BACKEND_FLAG0: ALWAYS_PRIMARY|DISALLOW_TO_FAILOVER
+    PGPOOL_PARAMS_BACKEND_HOSTNAME1: postgres-replica
+    PGPOOL_PARAMS_BACKEND_PORT1: 5432
+    PGPOOL_PARAMS_BACKEND_WEIGHT1: 1
+    PGPOOL_PARAMS_BACKEND_DATA_DIRECTORY1: /var/lib/postgresql/data
+    PGPOOL_PARAMS_BACKEND_FLAG1: DISALLOW_TO_FAILOVER
+    PGPOOL_PARAMS_PORT: 9999
+    PGPOOL_PARAMS_LOAD_BALANCE_MODE: "on"
+    PGPOOL_PARAMS_MASTER_SLAVE_MODE: "on"
+    PGPOOL_PARAMS_MASTER_SLAVE_SUB_MODE: stream
+    PGPOOL_PARAMS_SR_CHECK_USER: ${POSTGRES_USER}
+    PGPOOL_PARAMS_SR_CHECK_PASSWORD: ${POSTGRES_PASSWORD}
+    PGPOOL_PARAMS_SR_CHECK_DATABASE: postgres
+    PGPOOL_PARAMS_HEALTH_CHECK_USER: ${POSTGRES_USER}
+    PGPOOL_PARAMS_HEALTH_CHECK_PASSWORD: ${POSTGRES_PASSWORD}
+    PGPOOL_PARAMS_HEALTH_CHECK_DATABASE: postgres
+    PGPOOL_PARAMS_HEALTH_CHECK_PERIOD: 5
+    PGPOOL_PARAMS_HEALTH_CHECK_TIMEOUT: 20
+    PGPOOL_PARAMS_HEALTH_CHECK_MAX_RETRIES: 3
+    PGPOOL_PARAMS_FAILOVER_ON_BACKEND_ERROR: "off"
+    PGPOOL_PARAMS_LOG_LINE_PREFIX: "%t pid %p"
+    PGPOOL_PARAMS_LOG_CONNECTIONS: "on"
+    PGPOOL_PARAMS_LOG_HOSTNAME: "on"
+    PGPOOL_PARAMS_NUM_INIT_CHILDREN: 32
+    PGPOOL_PARAMS_MAX_POOL: 4
+    PGPOOL_PARAMS_CHILD_LIFE_TIME: 300
+    PGPOOL_PARAMS_CLIENT_IDLE_LIMIT: 60
+    PGPOOL_PARAMS_CONNECTION_LIFE_TIME: 300
+  command: sh -c "rm -f /run/pgpool/pgpool.pid 2>/dev/null; exec /opt/pgpool-II/bin/start.sh"
+  networks:
+    - cloudflared
+
 services:
   postgres:
     image: postgres:17
@@ -164,61 +214,22 @@ services:
       "
     networks:
       - cloudflared
-  pgpool:
-    image: pgpool/pgpool:latest
-    container_name: pgpool-prod
-    restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
-      postgres-replica:
-        condition: service_started
+  pgpool-public:
+    <<: *pgpool-common
+    container_name: pgpool-public-prod
+    ports:
+      - "127.0.0.1:6434:9999"
+    volumes:
+      - ./pgpool/pool_hba.public.conf:/opt/pgpool-II/etc/pool_hba.conf:ro
+
+  pgpool-internal:
+    <<: *pgpool-common
+    container_name: pgpool-internal-prod
     ports:
       - "127.0.0.1:6432:9999"
       - "${TAILSCALE_IP:-127.0.0.1}:6432:9999"
-    environment:
-      - POSTGRES_USERNAME=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - API_USERNAME=api
-      - API_PASSWORD=${API_PASSWORD}
-      - PGPOOL_PARAMS_BACKEND_HOSTNAME0=postgres
-      - PGPOOL_PARAMS_BACKEND_PORT0=5432
-      - PGPOOL_PARAMS_BACKEND_WEIGHT0=0
-      - PGPOOL_PARAMS_BACKEND_DATA_DIRECTORY0=/var/lib/postgresql/data
-      - PGPOOL_PARAMS_BACKEND_FLAG0=ALWAYS_PRIMARY|DISALLOW_TO_FAILOVER
-      - PGPOOL_PARAMS_BACKEND_HOSTNAME1=postgres-replica
-      - PGPOOL_PARAMS_BACKEND_PORT1=5432
-      - PGPOOL_PARAMS_BACKEND_WEIGHT1=1
-      - PGPOOL_PARAMS_BACKEND_DATA_DIRECTORY1=/var/lib/postgresql/data
-      - PGPOOL_PARAMS_BACKEND_FLAG1=DISALLOW_TO_FAILOVER
-      - PGPOOL_PARAMS_PORT=9999
-      - PGPOOL_PARAMS_LOAD_BALANCE_MODE=on
-      - PGPOOL_PARAMS_MASTER_SLAVE_MODE=on
-      - PGPOOL_PARAMS_MASTER_SLAVE_SUB_MODE=stream
-      - PGPOOL_PARAMS_SR_CHECK_USER=${POSTGRES_USER}
-      - PGPOOL_PARAMS_SR_CHECK_PASSWORD=${POSTGRES_PASSWORD}
-      - PGPOOL_PARAMS_SR_CHECK_DATABASE=postgres
-      - PGPOOL_PARAMS_HEALTH_CHECK_USER=${POSTGRES_USER}
-      - PGPOOL_PARAMS_HEALTH_CHECK_PASSWORD=${POSTGRES_PASSWORD}
-      - PGPOOL_PARAMS_HEALTH_CHECK_DATABASE=postgres
-      - PGPOOL_PARAMS_HEALTH_CHECK_PERIOD=5
-      - PGPOOL_PARAMS_HEALTH_CHECK_TIMEOUT=20
-      - PGPOOL_PARAMS_HEALTH_CHECK_MAX_RETRIES=3
-      - PGPOOL_PARAMS_FAILOVER_ON_BACKEND_ERROR=off
-      - PGPOOL_PARAMS_LOG_LINE_PREFIX=%t pid %p
-      - PGPOOL_PARAMS_LOG_CONNECTIONS=on
-      - PGPOOL_PARAMS_LOG_HOSTNAME=on
-      - PGPOOL_PARAMS_NUM_INIT_CHILDREN=32
-      - PGPOOL_PARAMS_MAX_POOL=4
-      - PGPOOL_PARAMS_CHILD_LIFE_TIME=300
-      - PGPOOL_PARAMS_CLIENT_IDLE_LIMIT=60
-      - PGPOOL_PARAMS_CONNECTION_LIFE_TIME=300
-    command: sh -c "rm -f /run/pgpool/pgpool.pid 2>/dev/null; exec /opt/pgpool-II/bin/start.sh"
     volumes:
-      - ./pgpool/pool_hba.conf:/usr/local/etc/pool_hba.conf:ro
-      - ./pgpool/pool_passwd:/usr/local/etc/pool_passwd:ro
-    networks:
-      - cloudflared
+      - ./pgpool/pool_hba.internal.conf:/opt/pgpool-II/etc/pool_hba.conf:ro
   
   
   cloudflared:
@@ -226,7 +237,8 @@ services:
     container_name: cloudflared-tunnel
     restart: unless-stopped
     depends_on:
-      - pgpool
+      - pgpool-public
+      - pgpool-internal
     command: tunnel --no-autoupdate --config /etc/cloudflared/config.yml run
     environment:
       - CLOUDFLARED_TUNNEL_NAME=${CLOUDFLARED_TUNNEL_NAME}

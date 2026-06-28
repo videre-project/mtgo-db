@@ -5,7 +5,7 @@ dotenv.config();
 
 const sql = postgres({
   host: process.env.API_DB_HOST ?? process.env.PGHOST ?? '127.0.0.1',
-  port: Number(process.env.API_DB_PORT ?? process.env.PGPORT ?? 6432),
+  port: Number(process.env.API_DB_PORT ?? process.env.PGPORT ?? 6434),
   database: process.env.API_DB_DATABASE ?? process.env.PGDATABASE ?? 'mtgo',
   username: process.env.API_DB_USER ?? process.env.PGUSER ?? 'public_api',
   password: process.env.API_DB_PASSWORD ?? process.env.PGPASSWORD,
