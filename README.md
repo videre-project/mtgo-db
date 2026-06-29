@@ -94,6 +94,13 @@ npm install -g pnpm
 
 ## Usage
 
+### Public Read-Only SQL Access
+
+Public SQL access is documented in
+[PUBLIC-API.md](PUBLIC-API.md). Use this when
+you need direct PostgreSQL access for exports, local analysis, or custom joins
+that do not fit the HTTP API.
+
 ### Starting the Database
 
 To start all services in the background:
