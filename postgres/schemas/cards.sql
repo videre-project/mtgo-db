@@ -49,7 +49,9 @@ CREATE TABLE IF NOT EXISTS cards (
   set_code          TEXT NULL REFERENCES sets (code) ON UPDATE CASCADE ON DELETE SET NULL,
   collector_number  TEXT NULL,
   name              TEXT NULL,
+  printed_name      TEXT NULL,
   name_normalized   TEXT GENERATED ALWAYS AS (lower(coalesce(name, ''))) STORED,
+  printed_name_normalized TEXT GENERATED ALWAYS AS (lower(coalesce(printed_name, ''))) STORED,
   art_id            INTEGER NULL,
   artist            TEXT NULL,
   card_texture_number INTEGER NULL,
@@ -85,6 +87,7 @@ CREATE TABLE IF NOT EXISTS cards (
   raw               JSONB NOT NULL DEFAULT '{}'::jsonb,
   search_vector     TSVECTOR GENERATED ALWAYS AS (
     setweight(to_tsvector('english'::regconfig, coalesce(name, '')), 'A') ||
+    setweight(to_tsvector('english'::regconfig, coalesce(printed_name, '')), 'A') ||
     setweight(to_tsvector('english'::regconfig, coalesce(type_line, '')), 'B') ||
     setweight(to_tsvector('english'::regconfig, coalesce(oracle_text, '')), 'C') ||
     setweight(to_tsvector('english'::regconfig, coalesce(flavor_text, '')), 'D')
@@ -130,7 +133,9 @@ CREATE TABLE IF NOT EXISTS card_faces (
   face_index        SMALLINT NOT NULL,
   source_catalog_id INTEGER NULL,
   name              TEXT NULL,
+  printed_name      TEXT NULL,
   name_normalized   TEXT GENERATED ALWAYS AS (lower(coalesce(name, ''))) STORED,
+  printed_name_normalized TEXT GENERATED ALWAYS AS (lower(coalesce(printed_name, ''))) STORED,
   colors            JSONB NOT NULL DEFAULT '[]'::jsonb,
   color_mask        INTEGER NOT NULL DEFAULT 0,
   mana_value        NUMERIC NULL,
@@ -150,6 +155,7 @@ CREATE TABLE IF NOT EXISTS card_faces (
   raw               JSONB NOT NULL DEFAULT '{}'::jsonb,
   search_vector     TSVECTOR GENERATED ALWAYS AS (
     setweight(to_tsvector('english'::regconfig, coalesce(name, '')), 'A') ||
+    setweight(to_tsvector('english'::regconfig, coalesce(printed_name, '')), 'A') ||
     setweight(to_tsvector('english'::regconfig, coalesce(type_line, '')), 'B') ||
     setweight(to_tsvector('english'::regconfig, coalesce(oracle_text, '')), 'C') ||
     setweight(to_tsvector('english'::regconfig, coalesce(flavor_text, '')), 'D')

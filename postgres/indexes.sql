@@ -35,7 +35,9 @@ CREATE INDEX IF NOT EXISTS idx_cards_oracle_id ON cards (oracle_id);
 CREATE INDEX IF NOT EXISTS idx_cards_set_code ON cards (set_code);
 CREATE INDEX IF NOT EXISTS idx_cards_name ON cards (name);
 CREATE INDEX IF NOT EXISTS idx_cards_name_normalized ON cards (name_normalized);
+CREATE INDEX IF NOT EXISTS idx_cards_printed_name_normalized ON cards (printed_name_normalized);
 CREATE INDEX IF NOT EXISTS idx_cards_name_trgm ON cards USING GIN (name_normalized gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_cards_printed_name_trgm ON cards USING GIN (printed_name_normalized gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_cards_search ON cards USING GIN (search_vector);
 CREATE INDEX IF NOT EXISTS idx_cards_type_line_trgm ON cards USING GIN (type_line gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_cards_oracle_text_trgm ON cards USING GIN (oracle_text gin_trgm_ops);
@@ -84,6 +86,7 @@ CREATE INDEX IF NOT EXISTS idx_card_catalog_variants_type ON card_catalog_varian
 
 CREATE INDEX IF NOT EXISTS idx_card_faces_source_catalog_id ON card_faces (source_catalog_id);
 CREATE INDEX IF NOT EXISTS idx_card_faces_name_trgm ON card_faces USING GIN (name_normalized gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_card_faces_printed_name_trgm ON card_faces USING GIN (printed_name_normalized gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_card_faces_search ON card_faces USING GIN (search_vector);
 CREATE INDEX IF NOT EXISTS idx_card_faces_type_line_trgm ON card_faces USING GIN (type_line gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_card_faces_oracle_text_trgm ON card_faces USING GIN (oracle_text gin_trgm_ops);

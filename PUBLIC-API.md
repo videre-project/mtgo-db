@@ -203,9 +203,10 @@ LIMIT 25;
 Find MTGO printings for a card name:
 
 ```sql
-SELECT id, set_code, collector_number, name, mana_cost, type_line
+SELECT id, set_code, collector_number, name, printed_name, mana_cost, type_line
 FROM cards
-WHERE lower(name) = lower('Lightning Bolt')
+WHERE name_normalized = lower('Lightning Bolt')
+   OR printed_name_normalized = lower('Lightning Bolt')
 ORDER BY set_code, collector_number, id;
 ```
 
