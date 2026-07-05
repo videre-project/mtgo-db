@@ -13,7 +13,26 @@ AS $function$
     ('Vintage'),
     ('Legacy'),
     ('Pauper'),
-    ('Premodern')
+    ('Premodern'),
+    ('Extended'),
+    ('Classic')
+$function$;
+
+CREATE OR REPLACE FUNCTION event_type_constants()
+RETURNS TABLE(event_name TEXT)
+LANGUAGE sql
+IMMUTABLE
+PARALLEL SAFE
+AS $function$
+  VALUES
+    ('League'),
+    ('Preliminary'),
+    ('Challenge'),
+    ('Showcase'),
+    ('Qualifier'),
+    ('Daily'),
+    ('Premier'),
+    ('Championship')
 $function$;
 
 CREATE OR REPLACE FUNCTION card_type_constants()

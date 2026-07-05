@@ -5,5 +5,6 @@ node_modules/
 postgres/data/
 postgres/logs/
 postgres/dump/**/*.sql
+postgres/dump/**/*.sql.sha256
 postgres/dump/**/*.dump
 postgres/dump/**/*.tar

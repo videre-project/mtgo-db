@@ -6,14 +6,53 @@ CREATE TABLE Players (
   name      PlayerName UNIQUE
 );
 
-CREATE TYPE EventType as ENUM (
-  'League',
-  'Preliminary',
-  'Challenge',
-  'Showcase',
-  'Qualifier'
-);
+-- Derives the EventType enum values from event_type_constants() in constants.sql
+DO $$
+DECLARE
+  event_name TEXT;
+  expected_event_types TEXT[];
+  actual_event_types TEXT[];
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_type
+    WHERE typname = 'eventtype'
+  ) THEN
+    EXECUTE format(
+      'CREATE TYPE EventType AS ENUM (%s)',
+      (
+        SELECT string_agg(quote_literal(value), ', ')
+        FROM event_type_constants() AS events(value)
+      )
+    );
+  END IF;
 
+  FOR event_name IN
+    SELECT value
+    FROM event_type_constants() AS events(value)
+  LOOP
+    EXECUTE format('ALTER TYPE EventType ADD VALUE IF NOT EXISTS %L', event_name);
+  END LOOP;
+
+  SELECT array_agg(value ORDER BY ordinality)
+  INTO expected_event_types
+  FROM event_type_constants() WITH ORDINALITY AS events(value, ordinality);
+
+  SELECT array_agg(e.enumlabel ORDER BY e.enumsortorder)
+  INTO actual_event_types
+  FROM pg_enum e
+  INNER JOIN pg_type t ON t.oid = e.enumtypid
+  WHERE t.typname = 'eventtype';
+
+  IF actual_event_types IS DISTINCT FROM expected_event_types THEN
+    RAISE EXCEPTION 'EventType enum drift: expected %, got %',
+      expected_event_types,
+      actual_event_types;
+  END IF;
+END
+$$;
+
+-- Derives the FormatType enum values from format_type_constants() in constants.sql
 DO $$
 DECLARE
   format_name TEXT;
@@ -62,7 +101,7 @@ CREATE TABLE Standings (
     REFERENCES Events (id)
       ON UPDATE CASCADE
       ON DELETE CASCADE,
-  rank      INT NOT NULL,
+  rank      INT,
   player    PlayerName
     REFERENCES Players (name)
       ON UPDATE CASCADE
@@ -127,5 +166,6 @@ CREATE TABLE Archetypes (
       ON DELETE CASCADE,
   name      TEXT NOT NULL,
   archetype TEXT NULL,
-  archetype_id INT NULL
+  archetype_id INT NULL,
+  provider  TEXT NULL
 );
