@@ -107,3 +107,7 @@ CREATE INDEX IF NOT EXISTS idx_card_faces_defense_numeric ON card_faces (api_num
 
 CREATE INDEX IF NOT EXISTS idx_card_legalities_format_status ON card_legalities (format_code, status);
 CREATE INDEX IF NOT EXISTS idx_card_legalities_format_status_oracle ON card_legalities (format_code, status, oracle_id);
+
+CREATE INDEX IF NOT EXISTS idx_catalog_items_kind ON catalog_items (kind);
+CREATE INDEX IF NOT EXISTS idx_catalog_price_history_catalog_date ON catalog_price_history (catalog_id, price_date DESC);
+CREATE INDEX IF NOT EXISTS idx_catalog_price_history_source_date ON catalog_price_history (source, price_date DESC);

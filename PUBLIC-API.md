@@ -136,6 +136,9 @@ Current table grants include:
 - `card_catalog_variants`
 - `card_faces`
 - `card_legalities`
+- `catalog_items`
+- `catalog_price_definitions`
+- `catalog_price_history`
 - `cards`
 - `decks`
 - `events`
