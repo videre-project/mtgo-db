@@ -99,6 +99,7 @@ CREATE TABLE IF NOT EXISTS products (
   set_code            TEXT NULL REFERENCES sets (code) ON UPDATE CASCADE ON DELETE SET NULL,
   name                TEXT NULL,
   name_normalized     TEXT GENERATED ALWAYS AS (lower(coalesce(name, ''))) STORED,
+  description         TEXT NULL,
   object_type         TEXT NULL,
   texture_number      INTEGER NULL,
   is_tradable         BOOLEAN NULL,
@@ -107,7 +108,8 @@ CREATE TABLE IF NOT EXISTS products (
   raw                 JSONB NOT NULL DEFAULT '{}'::jsonb,
   search_vector       TSVECTOR GENERATED ALWAYS AS (
     setweight(to_tsvector('english'::regconfig, coalesce(name, '')), 'A') ||
-    setweight(to_tsvector('english'::regconfig, coalesce(object_type, '')), 'B')
+    setweight(to_tsvector('english'::regconfig, coalesce(object_type, '')), 'B') ||
+    setweight(to_tsvector('english'::regconfig, coalesce(description, '')), 'C')
   ) STORED,
   CONSTRAINT chk_products_no_tokens CHECK (object_type IS NULL OR object_type <> 'TOKN')
 );
