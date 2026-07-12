@@ -101,15 +101,15 @@ Because card data is **mutable** (erratas and migrations can change past rows), 
 
 ## Keeping current after a baseline
 
-Once you have a baseline (this branch, or the full `replica-dump` snapshot from the main repo), stay current with the incremental sync against the public read-only role:
+Once you have restored this baseline, stay current with the incremental sync against the public read-only role:
 
 ```sh
 # events bundle:
-pnpm run replica-sync "<your-connection-string>" --profile events --since "<watermark>"
+pnpm run replica-sync "<your-connection-string>" --profile events
 # prices bundle:
 pnpm run replica-sync "<your-connection-string>" --profile prices --since "<watermark>"
 # cards bundle (full upsert of reference + changed rows):
-pnpm run replica-sync "<your-connection-string>" --profile cards --since "<watermark>"
+pnpm run replica-sync "<your-connection-string>" --profile cards
 ```
 
 See `PUBLIC-API.md` in the main repo for how to connect as `public_api` via the Cloudflare Tunnel bridge.
