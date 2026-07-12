@@ -99,6 +99,7 @@ services:
       retries: 5
     networks:
       - cloudflared
+      - mtgo-db-shared
   
   # Automated backup service - monitors database and backs up after writes
   backup:
@@ -213,6 +214,7 @@ services:
         exec postgres -c hba_file=/etc/postgresql/pg_hba.conf
       "
     networks:
+      - mtgo-db-shared
       - cloudflared
   pgpool-public:
     <<: *pgpool-common
@@ -250,6 +252,8 @@ services:
 networks:
   cloudflared:
     driver: bridge
+  mtgo-db-shared:
+    name: mtgo-db-shared
 volumes:
   postgres-data:
   postgres-data-replica:
