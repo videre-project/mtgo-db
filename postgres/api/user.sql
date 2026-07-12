@@ -115,6 +115,7 @@ GRANT SELECT ON TABLE
   cards,
   decks,
   events,
+  formats,
   matches,
   oracle_cards,
   players,

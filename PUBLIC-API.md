@@ -142,6 +142,7 @@ Current table grants include:
 - `cards`
 - `decks`
 - `events`
+- `formats`
 - `matches`
 - `oracle_cards`
 - `products`

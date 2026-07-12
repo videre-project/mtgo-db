@@ -101,6 +101,10 @@ Public SQL access is documented in
 you need direct PostgreSQL access for exports, local analysis, or custom joins
 that do not fit the HTTP API.
 
+### Running a Local Replica
+
+Replica publication, restore workflows, public Cloudflare connections, and maintenance commands are documented in [REPLICA.md](REPLICA.md).
+
 ### Starting the Database
 
 To start all services in the background:

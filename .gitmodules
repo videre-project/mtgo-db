@@ -1,0 +1,4 @@
+[submodule "postgres/dump/replica"]
+	path = postgres/dump/replica
+	url = https://github.com/videre-project/mtgo-db.git
+	branch = replica-data
