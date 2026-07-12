@@ -117,6 +117,7 @@ GRANT SELECT ON TABLE
   events,
   matches,
   oracle_cards,
+  players,
   products,
   sets,
   standings
