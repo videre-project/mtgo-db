@@ -94,7 +94,8 @@ AS $function$
     ('mythicrare',  'mythic'),
     ('mythic rare', 'mythic'),
     ('basic',       'basic land'),
-    ('basicland',   'basic land')
+    ('basicland',   'basic land'),
+    ('land',        'basic land')
 $function$;
 
 CREATE OR REPLACE FUNCTION cdn_card_image_base_url()
