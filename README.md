@@ -391,29 +391,32 @@ Pgpool can safely route it.
 
 #### Tailscale Remote Access
 
-If you have [Tailscale](https://tailscale.com/) set up, you can access the database from any device on your tailnet without needing a Cloudflare Tunnel.
+If you have [Tailscale](https://tailscale.com/) set up, you can access the database from any device on your tailnet without binding Docker directly to the `tailscale0` address. The database ports remain on loopback and Tailscale Serve forwards tailnet traffic to them.
 
-1. **Get your Tailscale IP:**
+1. **Make sure Tailscale is running:**
+
+   ```bash
+   # Void Linux (runit)
+   sudo sv up tailscaled
+   sudo tailscale up --accept-dns=false
+   ```
+
+   `--accept-dns=false` leaves the host's existing `resolvconf` DNS setup in
+   charge.
+
+2. **Start the database and publish its loopback ports to the tailnet:**
+
+   ```bash
+   pnpm start
+   sudo tailscale serve --bg --tcp=6432 tcp://localhost:6432
+   sudo tailscale serve --bg --tcp=5433 tcp://localhost:5433
+   ```
+
+3. **Connect from another Tailscale device:**
 
    ```bash
    tailscale ip -4
-   ```
 
-2. **Add it to your `.env` file:**
-
-   ```env
-   TAILSCALE_IP=100.x.x.x  # Replace with your actual Tailscale IP
-   ```
-
-3. **Restart the containers:**
-
-   ```bash
-   pnpm stop && pnpm start
-   ```
-
-4. **Connect from another Tailscale device:**
-
-   ```bash
    # Via Pgpool (recommended)
    psql -h 100.x.x.x -p 6432 -U your_username -d mtgo
 
@@ -421,8 +424,13 @@ If you have [Tailscale](https://tailscale.com/) set up, you can access the datab
    psql -h 100.x.x.x -p 5433 -U your_username -d mtgo
    ```
 
-> [!NOTE]
-> If `TAILSCALE_IP` is not set, the database remains accessible only on localhost. This is safe for machines without Tailscale installed.
+You can also use the Tailscale hostname (e.g., `your-hostname.tailnet-name.ts.net`) instead of the IP address. To inspect your configured active forwarders, run:
+
+```bash
+tailscale serve status
+```
+
+Tailnet access remains subject to your Tailscale access-control policy, which can be configured in the Tailscale admin console.
 
 #### Read-Only SQL Users
 
@@ -491,7 +499,6 @@ All configuration is managed through environment variables in the `.env` file:
 - `POSTGRES_DB` - Database name
 - `POSTGRES_PORT` - Internal Pgpool-II port for first-party API traffic (default: 6432)
 - `API_PASSWORD` - Password for the first-party `api` service role used by Workers
-- `TAILSCALE_IP` - Your machine's Tailscale IP for remote access (optional, see [Tailscale Remote Access](#tailscale-remote-access))
 - `CLOUDFLARED_PUBLIC_HOSTNAME` - Public Cloudflare tunnel hostname for `public_api`
 - `CLOUDFLARED_WORKER_HOSTNAME` - Worker-only Cloudflare tunnel hostname for `api`
 - `CLOUDFLARED_TUNNEL_NAME` - Cloudflare tunnel name

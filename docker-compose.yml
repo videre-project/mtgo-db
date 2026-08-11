@@ -81,7 +81,6 @@ services:
       - ./postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
     ports:
       - "127.0.0.1:5433:5432"
-      - "${TAILSCALE_IP:-127.0.0.1}:5433:5432"
     command:
       - "postgres"
       - "-c"
@@ -229,7 +228,6 @@ services:
     container_name: pgpool-internal-prod
     ports:
       - "127.0.0.1:6432:9999"
-      - "${TAILSCALE_IP:-127.0.0.1}:6432:9999"
     volumes:
       - ./pgpool/pool_hba.internal.conf:/opt/pgpool-II/etc/pool_hba.conf:ro
   
