@@ -34,6 +34,7 @@ This is separate from the Worker/API hostname:
 
 ```text
 worker-db.videreproject.com
+  -> pgbouncer-internal (transaction pool)
   -> pgpool-internal
   -> api
 ```

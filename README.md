@@ -8,7 +8,8 @@ A high-availability PostgreSQL database with read replicas, intelligent load bal
 
 - **PostgreSQL 18** - Primary database server with optimized performance settings and streaming replication
 - **Read Replicas** - Hot standby replicas for read query load distribution
-- **Pgpool-II** - Intelligent connection pooling with automatic read/write query splitting
+- **Pgpool-II** - Read/write query splitting behind bounded database sessions
+- **PgBouncer** - Transaction pooling for the private Worker connection path
 - **Automated Backups** - Backup service that monitors database activity and creates backups after writes
 - **Cloudflare Tunnel** - Secure remote access without exposing ports publicly
 - **Docker Compose** - Complete containerized setup for cross-platform deployment
@@ -353,14 +354,16 @@ psql -h localhost -p 5433 -U your_username -d mtgo
 
 #### Remote Connection (via Cloudflare Tunnel)
 
-The Cloudflare Tunnel exposes two Pgpool-II services for direct PostgreSQL
-clients:
+The Cloudflare Tunnel exposes a public Pgpool-II endpoint and a private
+transaction-pooling endpoint for the first-party Worker:
 
 - `public-db.videreproject.com` routes to the public pool and only allows the
   passwordless, read-only `public_api` role.
-- `worker-db.videreproject.com` routes to the Worker/internal pool and is
+- `worker-db.videreproject.com` routes to the internal transaction pool and is
   protected by Cloudflare Access Service Auth. It is used by first-party
   Workers connecting as `api`.
+
+The Worker path enters `pgbouncer-internal` before `pgpool-internal`. PgBouncer uses transaction pooling, accepts up to 512 client sockets, and keeps at most 32 server sessions open to Pgpool. This lets short API requests reuse the internal pool without increasing the number of aggregate queries that run at once. Requests that arrive while those sessions are busy wait in PgBouncer for up to 14 seconds.
 
 **For Public Read-Only SQL:**
 
@@ -371,8 +374,7 @@ through the tunnel:
 pnpm run bridge
 ```
 
-This starts a local listener at `127.0.0.1:5432` and forwards traffic to the
-production Pgpool endpoint. Connect with the passwordless read-only user:
+This starts a local listener at `127.0.0.1:5432` and forwards traffic to the production Pgpool endpoint. Connect with the passwordless read-only user:
 
 ```bash
 psql 'postgres://public_api@127.0.0.1:5432/mtgo?sslmode=disable'
@@ -386,8 +388,20 @@ cloudflared access tcp \
   --url 127.0.0.1:5432
 ```
 
-The tunnel connects to Pgpool-II, so read traffic uses the replica path where
-Pgpool can safely route it.
+The public tunnel connects directly to Pgpool-II. Read traffic uses the replica
+path where Pgpool can safely route it. The Worker tunnel uses the transaction
+pool described above before it reaches Pgpool.
+
+For local testing of the Worker path, the compose stack publishes PgBouncer on
+`127.0.0.1:6433`:
+
+```bash
+psql 'postgres://api@127.0.0.1:6433/mtgo?sslmode=disable'
+```
+
+The password is the value of `API_PASSWORD` in the local environment. The
+existing `127.0.0.1:6432` listener remains the direct Pgpool-II endpoint for
+administration and diagnostics.
 
 #### Tailscale Remote Access
 
@@ -551,15 +565,17 @@ Security is enforced at multiple layers:
 If you encounter port conflicts, you can change the ports in `docker-compose.yml`:
 
 - PostgreSQL: Change `127.0.0.1:5433:5432` to a different host port
-- PgBouncer: Change `POSTGRES_PORT` in `.env`
+- PgBouncer: Change the host-side `127.0.0.1:6433` mapping in
+  `docker-compose.yml`
 
 ### Authentication Issues
 
-If you get "wrong password type" errors, ensure:
+If you get authentication errors on the private Worker path, ensure:
 
-1. PgBouncer has `AUTH_TYPE: scram-sha-256` configured
-2. Your password is set correctly in `.env`
-3. The containers have been recreated after configuration changes
+1. `API_PASSWORD` is set correctly in `.env`.
+2. PgBouncer has been recreated after a password or authentication change.
+3. `pgpool/pool_hba.internal.conf` still permits password authentication for
+   the `api` role.
 
 ### Docker Issues
 
@@ -587,9 +603,14 @@ If the read replica fails to start:
 
 If Pgpool-II is not routing queries correctly:
 
-1. Check Pgpool logs: `docker compose logs pgpool-public pgpool-internal`
+1. Check pooler logs: `docker compose logs pgbouncer-internal pgpool-public pgpool-internal`
 2. Verify backend status: `docker compose exec pgpool-internal psql -h localhost -p 9999 -U postgres -c "SHOW POOL_NODES;"`
 3. Ensure both primary and replica are healthy before Pgpool starts
+
+To inspect PgBouncer's pool counters locally, connect to its administrative
+database as the `postgres` user after configuring a local administrative
+credential, or inspect the container logs. The production Worker path keeps
+the administrative database unavailable to Worker clients.
 
 ## License
 

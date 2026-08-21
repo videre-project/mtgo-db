@@ -230,6 +230,31 @@ services:
       - "127.0.0.1:6432:9999"
     volumes:
       - ./pgpool/pool_hba.internal.conf:/opt/pgpool-II/etc/pool_hba.conf:ro
+
+  pgbouncer-internal:
+    build:
+      context: ./pgbouncer
+    container_name: pgbouncer-internal-prod
+    restart: unless-stopped
+    depends_on:
+      pgpool-internal:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgres://api:${API_PASSWORD}@pgpool-internal:9999/mtgo
+      AUTH_TYPE: plain
+    ports:
+      - "127.0.0.1:6433:6432"
+    ulimits:
+      nofile:
+        soft: 2048
+        hard: 2048
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z -w 1 127.0.0.1 6432"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cloudflared
   
   
   cloudflared:
@@ -237,8 +262,10 @@ services:
     container_name: cloudflared-tunnel
     restart: unless-stopped
     depends_on:
-      - pgpool-public
-      - pgpool-internal
+      pgpool-public:
+        condition: service_started
+      pgbouncer-internal:
+        condition: service_healthy
     command: tunnel --no-autoupdate --config /etc/cloudflared/config.yml run
     environment:
       - CLOUDFLARED_TUNNEL_NAME=${CLOUDFLARED_TUNNEL_NAME}

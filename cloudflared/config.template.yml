@@ -4,5 +4,5 @@ ingress:
   - hostname: ${CLOUDFLARED_PUBLIC_HOSTNAME}
     service: tcp://pgpool-public:9999
   - hostname: ${CLOUDFLARED_WORKER_HOSTNAME}
-    service: tcp://pgpool-internal:9999
+    service: tcp://pgbouncer-internal:6432
   - service: http_status:404
