@@ -1,96 +1,17 @@
 {
   "month": "2026-07",
-  "generated_at": "2026-08-01T19:57:36.818Z",
+  "generated_at": "2026-09-02T09:59:41.690Z",
   "source": "postgres-replica-prod",
   "format": "csv",
   "compression": 9,
   "profiles": [
-    "events",
-    "prices"
+    "prices",
+    "events"
   ],
-  "event_count": 407,
+  "event_count": 411,
   "price_count": 3128869,
   "cards_count": 0,
   "tables": [
-    {
-      "name": "events",
-      "file": "events.dump.gz",
-      "bytes": 4181,
-      "columns": [
-        "id",
-        "name",
-        "date",
-        "format",
-        "kind",
-        "rounds",
-        "players"
-      ]
-    },
-    {
-      "name": "matches",
-      "file": "matches.dump.gz",
-      "bytes": 1326158,
-      "columns": [
-        "id",
-        "event_id",
-        "round",
-        "player",
-        "opponent",
-        "record",
-        "result",
-        "isbye",
-        "games"
-      ]
-    },
-    {
-      "name": "decks",
-      "file": "decks.dump.gz",
-      "bytes": 1804469,
-      "columns": [
-        "id",
-        "event_id",
-        "player",
-        "mainboard",
-        "sideboard"
-      ]
-    },
-    {
-      "name": "standings",
-      "file": "standings.dump.gz",
-      "bytes": 206355,
-      "columns": [
-        "event_id",
-        "rank",
-        "player",
-        "record",
-        "points",
-        "omwp",
-        "gwp",
-        "owp"
-      ]
-    },
-    {
-      "name": "archetypes",
-      "file": "archetypes.dump.gz",
-      "bytes": 107342,
-      "columns": [
-        "id",
-        "deck_id",
-        "name",
-        "archetype",
-        "archetype_id",
-        "provider"
-      ]
-    },
-    {
-      "name": "players",
-      "file": "players.dump.gz",
-      "bytes": 37033,
-      "columns": [
-        "id",
-        "name"
-      ]
-    },
     {
       "name": "catalog_items",
       "file": "catalog_items.dump.gz",
@@ -130,6 +51,85 @@
         "sell_price",
         "first_seen_at",
         "last_seen_at"
+      ]
+    },
+    {
+      "name": "events",
+      "file": "events.dump.gz",
+      "bytes": 4213,
+      "columns": [
+        "id",
+        "name",
+        "date",
+        "format",
+        "kind",
+        "rounds",
+        "players"
+      ]
+    },
+    {
+      "name": "matches",
+      "file": "matches.dump.gz",
+      "bytes": 1347312,
+      "columns": [
+        "id",
+        "event_id",
+        "round",
+        "player",
+        "opponent",
+        "record",
+        "result",
+        "isbye",
+        "games"
+      ]
+    },
+    {
+      "name": "decks",
+      "file": "decks.dump.gz",
+      "bytes": 1850728,
+      "columns": [
+        "id",
+        "event_id",
+        "player",
+        "mainboard",
+        "sideboard"
+      ]
+    },
+    {
+      "name": "standings",
+      "file": "standings.dump.gz",
+      "bytes": 208317,
+      "columns": [
+        "event_id",
+        "rank",
+        "player",
+        "record",
+        "points",
+        "omwp",
+        "gwp",
+        "owp"
+      ]
+    },
+    {
+      "name": "archetypes",
+      "file": "archetypes.dump.gz",
+      "bytes": 108661,
+      "columns": [
+        "id",
+        "deck_id",
+        "name",
+        "archetype",
+        "archetype_id",
+        "provider"
+      ]
+    },
+    {
+      "name": "players",
+      "file": "players.dump.gz",
+      "bytes": 37405,
+      "columns": [
+        "id",
+        "name"
       ]
     }
   ]
