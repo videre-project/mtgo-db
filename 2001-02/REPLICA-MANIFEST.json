@@ -1,6 +1,6 @@
 {
   "month": "2001-02",
-  "generated_at": "2026-07-12T21:12:23.436Z",
+  "generated_at": "2026-09-02T09:50:54.328Z",
   "source": "postgres-replica-prod",
   "format": "csv",
   "compression": 9,
@@ -29,7 +29,7 @@
     {
       "name": "cards",
       "file": "cards.dump.gz",
-      "bytes": 30341,
+      "bytes": 29079,
       "columns": [
         "id",
         "oracle_id",
@@ -75,7 +75,7 @@
     {
       "name": "products",
       "file": "products.dump.gz",
-      "bytes": 1698,
+      "bytes": 1409,
       "columns": [
         "id",
         "set_code",
@@ -92,7 +92,7 @@
     {
       "name": "card_catalog_variants",
       "file": "card_catalog_variants.dump.gz",
-      "bytes": 5579,
+      "bytes": 4531,
       "columns": [
         "catalog_id",
         "card_id",
@@ -139,7 +139,7 @@
     {
       "name": "oracle_cards",
       "file": "oracle_cards.dump.gz",
-      "bytes": 10926,
+      "bytes": 10927,
       "columns": [
         "id",
         "name",
