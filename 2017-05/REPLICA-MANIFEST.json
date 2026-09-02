@@ -1,21 +1,100 @@
 {
   "month": "2017-05",
-  "generated_at": "2026-07-12T21:18:24.097Z",
+  "generated_at": "2026-09-02T09:55:14.100Z",
   "source": "postgres-replica-prod",
   "format": "csv",
   "compression": 9,
   "profiles": [
-    "cards",
-    "events"
+    "events",
+    "cards"
   ],
   "event_count": 248,
   "price_count": 0,
   "cards_count": 1,
   "tables": [
     {
+      "name": "archetypes",
+      "file": "archetypes.dump.gz",
+      "bytes": 9259,
+      "columns": [
+        "id",
+        "deck_id",
+        "name",
+        "archetype",
+        "archetype_id",
+        "provider"
+      ]
+    },
+    {
+      "name": "events",
+      "file": "events.dump.gz",
+      "bytes": 2796,
+      "columns": [
+        "id",
+        "name",
+        "date",
+        "format",
+        "kind",
+        "rounds",
+        "players"
+      ]
+    },
+    {
+      "name": "matches",
+      "file": "matches.dump.gz",
+      "bytes": 20,
+      "columns": [
+        "id",
+        "event_id",
+        "round",
+        "player",
+        "opponent",
+        "record",
+        "result",
+        "isbye",
+        "games"
+      ]
+    },
+    {
+      "name": "decks",
+      "file": "decks.dump.gz",
+      "bytes": 496881,
+      "columns": [
+        "id",
+        "event_id",
+        "player",
+        "mainboard",
+        "sideboard"
+      ]
+    },
+    {
+      "name": "standings",
+      "file": "standings.dump.gz",
+      "bytes": 55767,
+      "columns": [
+        "event_id",
+        "rank",
+        "player",
+        "record",
+        "points",
+        "omwp",
+        "gwp",
+        "owp"
+      ]
+    },
+    {
+      "name": "players",
+      "file": "players.dump.gz",
+      "bytes": 20466,
+      "columns": [
+        "id",
+        "name"
+      ]
+    },
+    {
       "name": "sets",
       "file": "sets.dump.gz",
-      "bytes": 152,
+      "bytes": 153,
       "columns": [
         "code",
         "name",
@@ -30,7 +109,7 @@
     {
       "name": "cards",
       "file": "cards.dump.gz",
-      "bytes": 1049,
+      "bytes": 923,
       "columns": [
         "id",
         "oracle_id",
@@ -93,7 +172,7 @@
     {
       "name": "card_catalog_variants",
       "file": "card_catalog_variants.dump.gz",
-      "bytes": 552,
+      "bytes": 291,
       "columns": [
         "catalog_id",
         "card_id",
@@ -177,7 +256,7 @@
     {
       "name": "card_legalities",
       "file": "card_legalities.dump.gz",
-      "bytes": 260,
+      "bytes": 259,
       "columns": [
         "oracle_id",
         "format_code",
@@ -185,85 +264,6 @@
         "source_rule_set_id",
         "first_seen_at",
         "last_seen_at"
-      ]
-    },
-    {
-      "name": "archetypes",
-      "file": "archetypes.dump.gz",
-      "bytes": 9259,
-      "columns": [
-        "id",
-        "deck_id",
-        "name",
-        "archetype",
-        "archetype_id",
-        "provider"
-      ]
-    },
-    {
-      "name": "events",
-      "file": "events.dump.gz",
-      "bytes": 2796,
-      "columns": [
-        "id",
-        "name",
-        "date",
-        "format",
-        "kind",
-        "rounds",
-        "players"
-      ]
-    },
-    {
-      "name": "matches",
-      "file": "matches.dump.gz",
-      "bytes": 20,
-      "columns": [
-        "id",
-        "event_id",
-        "round",
-        "player",
-        "opponent",
-        "record",
-        "result",
-        "isbye",
-        "games"
-      ]
-    },
-    {
-      "name": "decks",
-      "file": "decks.dump.gz",
-      "bytes": 496881,
-      "columns": [
-        "id",
-        "event_id",
-        "player",
-        "mainboard",
-        "sideboard"
-      ]
-    },
-    {
-      "name": "standings",
-      "file": "standings.dump.gz",
-      "bytes": 55767,
-      "columns": [
-        "event_id",
-        "rank",
-        "player",
-        "record",
-        "points",
-        "omwp",
-        "gwp",
-        "owp"
-      ]
-    },
-    {
-      "name": "players",
-      "file": "players.dump.gz",
-      "bytes": 20466,
-      "columns": [
-        "id",
-        "name"
       ]
     }
   ]
