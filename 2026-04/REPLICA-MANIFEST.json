@@ -1,13 +1,13 @@
 {
   "month": "2026-04",
-  "generated_at": "2026-07-12T21:20:17.041Z",
+  "generated_at": "2026-09-02T09:59:08.998Z",
   "source": "postgres-replica-prod",
   "format": "csv",
   "compression": 9,
   "profiles": [
     "prices",
-    "cards",
-    "events"
+    "events",
+    "cards"
   ],
   "event_count": 161,
   "price_count": 3020656,
@@ -121,9 +121,22 @@
       ]
     },
     {
+      "name": "archetypes",
+      "file": "archetypes.dump.gz",
+      "bytes": 53010,
+      "columns": [
+        "id",
+        "deck_id",
+        "name",
+        "archetype",
+        "archetype_id",
+        "provider"
+      ]
+    },
+    {
       "name": "sets",
       "file": "sets.dump.gz",
-      "bytes": 210,
+      "bytes": 209,
       "columns": [
         "code",
         "name",
@@ -138,7 +151,7 @@
     {
       "name": "cards",
       "file": "cards.dump.gz",
-      "bytes": 203233,
+      "bytes": 196252,
       "columns": [
         "id",
         "oracle_id",
@@ -184,7 +197,7 @@
     {
       "name": "products",
       "file": "products.dump.gz",
-      "bytes": 1920,
+      "bytes": 1622,
       "columns": [
         "id",
         "set_code",
@@ -201,7 +214,7 @@
     {
       "name": "card_catalog_variants",
       "file": "card_catalog_variants.dump.gz",
-      "bytes": 34596,
+      "bytes": 29011,
       "columns": [
         "catalog_id",
         "card_id",
@@ -219,7 +232,7 @@
     {
       "name": "card_faces",
       "file": "card_faces.dump.gz",
-      "bytes": 1377,
+      "bytes": 1197,
       "columns": [
         "card_id",
         "face_index",
@@ -248,7 +261,7 @@
     {
       "name": "oracle_cards",
       "file": "oracle_cards.dump.gz",
-      "bytes": 28170,
+      "bytes": 28173,
       "columns": [
         "id",
         "name",
@@ -285,7 +298,7 @@
     {
       "name": "card_legalities",
       "file": "card_legalities.dump.gz",
-      "bytes": 16559,
+      "bytes": 16556,
       "columns": [
         "oracle_id",
         "format_code",
@@ -293,19 +306,6 @@
         "source_rule_set_id",
         "first_seen_at",
         "last_seen_at"
-      ]
-    },
-    {
-      "name": "archetypes",
-      "file": "archetypes.dump.gz",
-      "bytes": 53010,
-      "columns": [
-        "id",
-        "deck_id",
-        "name",
-        "archetype",
-        "archetype_id",
-        "provider"
       ]
     }
   ]
