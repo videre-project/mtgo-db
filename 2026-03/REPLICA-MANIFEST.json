@@ -1,13 +1,13 @@
 {
   "month": "2026-03",
-  "generated_at": "2026-07-12T21:20:15.222Z",
+  "generated_at": "2026-09-02T09:59:04.487Z",
   "source": "postgres-replica-prod",
   "format": "csv",
   "compression": 9,
   "profiles": [
     "prices",
-    "cards",
-    "events"
+    "events",
+    "cards"
   ],
   "event_count": 190,
   "price_count": 3100379,
@@ -121,6 +121,19 @@
       ]
     },
     {
+      "name": "archetypes",
+      "file": "archetypes.dump.gz",
+      "bytes": 60546,
+      "columns": [
+        "id",
+        "deck_id",
+        "name",
+        "archetype",
+        "archetype_id",
+        "provider"
+      ]
+    },
+    {
       "name": "sets",
       "file": "sets.dump.gz",
       "bytes": 224,
@@ -138,7 +151,7 @@
     {
       "name": "cards",
       "file": "cards.dump.gz",
-      "bytes": 102620,
+      "bytes": 97700,
       "columns": [
         "id",
         "oracle_id",
@@ -184,7 +197,7 @@
     {
       "name": "products",
       "file": "products.dump.gz",
-      "bytes": 1305,
+      "bytes": 1048,
       "columns": [
         "id",
         "set_code",
@@ -201,7 +214,7 @@
     {
       "name": "card_catalog_variants",
       "file": "card_catalog_variants.dump.gz",
-      "bytes": 17770,
+      "bytes": 14795,
       "columns": [
         "catalog_id",
         "card_id",
@@ -219,7 +232,7 @@
     {
       "name": "card_faces",
       "file": "card_faces.dump.gz",
-      "bytes": 854,
+      "bytes": 716,
       "columns": [
         "card_id",
         "face_index",
@@ -248,7 +261,7 @@
     {
       "name": "oracle_cards",
       "file": "oracle_cards.dump.gz",
-      "bytes": 25187,
+      "bytes": 25189,
       "columns": [
         "id",
         "name",
@@ -293,19 +306,6 @@
         "source_rule_set_id",
         "first_seen_at",
         "last_seen_at"
-      ]
-    },
-    {
-      "name": "archetypes",
-      "file": "archetypes.dump.gz",
-      "bytes": 60546,
-      "columns": [
-        "id",
-        "deck_id",
-        "name",
-        "archetype",
-        "archetype_id",
-        "provider"
       ]
     }
   ]
