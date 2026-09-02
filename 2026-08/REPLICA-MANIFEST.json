@@ -1,13 +1,13 @@
 {
   "month": "2026-08",
-  "generated_at": "2026-09-02T10:00:02.330Z",
+  "generated_at": "2026-09-02T10:25:10.619Z",
   "source": "postgres-replica-prod",
   "format": "csv",
   "compression": 9,
   "profiles": [
     "cards",
-    "events",
-    "prices"
+    "prices",
+    "events"
   ],
   "event_count": 386,
   "price_count": 2939380,
@@ -189,6 +189,47 @@
       ]
     },
     {
+      "name": "catalog_items",
+      "file": "catalog_items.dump.gz",
+      "bytes": 415446,
+      "columns": [
+        "catalog_id",
+        "kind",
+        "first_seen_at",
+        "last_seen_at"
+      ]
+    },
+    {
+      "name": "catalog_price_definitions",
+      "file": "catalog_price_definitions.dump.gz",
+      "bytes": 1937678,
+      "columns": [
+        "source",
+        "catalog_id",
+        "source_name",
+        "source_cardset",
+        "source_rarity",
+        "source_version",
+        "source_foil",
+        "first_seen_at",
+        "last_seen_at",
+        "raw"
+      ]
+    },
+    {
+      "name": "catalog_price_history",
+      "file": "catalog_price_history.dump.gz",
+      "bytes": 10481215,
+      "columns": [
+        "source",
+        "price_date",
+        "catalog_id",
+        "sell_price",
+        "first_seen_at",
+        "last_seen_at"
+      ]
+    },
+    {
       "name": "events",
       "file": "events.dump.gz",
       "bytes": 4105,
@@ -205,7 +246,7 @@
     {
       "name": "matches",
       "file": "matches.dump.gz",
-      "bytes": 1325614,
+      "bytes": 1329770,
       "columns": [
         "id",
         "event_id",
@@ -265,47 +306,6 @@
       "columns": [
         "id",
         "name"
-      ]
-    },
-    {
-      "name": "catalog_items",
-      "file": "catalog_items.dump.gz",
-      "bytes": 415446,
-      "columns": [
-        "catalog_id",
-        "kind",
-        "first_seen_at",
-        "last_seen_at"
-      ]
-    },
-    {
-      "name": "catalog_price_definitions",
-      "file": "catalog_price_definitions.dump.gz",
-      "bytes": 1937678,
-      "columns": [
-        "source",
-        "catalog_id",
-        "source_name",
-        "source_cardset",
-        "source_rarity",
-        "source_version",
-        "source_foil",
-        "first_seen_at",
-        "last_seen_at",
-        "raw"
-      ]
-    },
-    {
-      "name": "catalog_price_history",
-      "file": "catalog_price_history.dump.gz",
-      "bytes": 10481215,
-      "columns": [
-        "source",
-        "price_date",
-        "catalog_id",
-        "sell_price",
-        "first_seen_at",
-        "last_seen_at"
       ]
     }
   ]
