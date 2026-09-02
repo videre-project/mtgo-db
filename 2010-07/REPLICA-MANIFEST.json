@@ -1,17 +1,96 @@
 {
   "month": "2010-07",
-  "generated_at": "2026-07-12T21:17:41.804Z",
+  "generated_at": "2026-09-02T09:53:04.663Z",
   "source": "postgres-replica-prod",
   "format": "csv",
   "compression": 9,
   "profiles": [
-    "cards",
-    "events"
+    "events",
+    "cards"
   ],
   "event_count": 160,
   "price_count": 0,
   "cards_count": 1,
   "tables": [
+    {
+      "name": "archetypes",
+      "file": "archetypes.dump.gz",
+      "bytes": 20,
+      "columns": [
+        "id",
+        "deck_id",
+        "name",
+        "archetype",
+        "archetype_id",
+        "provider"
+      ]
+    },
+    {
+      "name": "events",
+      "file": "events.dump.gz",
+      "bytes": 1087,
+      "columns": [
+        "id",
+        "name",
+        "date",
+        "format",
+        "kind",
+        "rounds",
+        "players"
+      ]
+    },
+    {
+      "name": "matches",
+      "file": "matches.dump.gz",
+      "bytes": 20,
+      "columns": [
+        "id",
+        "event_id",
+        "round",
+        "player",
+        "opponent",
+        "record",
+        "result",
+        "isbye",
+        "games"
+      ]
+    },
+    {
+      "name": "decks",
+      "file": "decks.dump.gz",
+      "bytes": 105695,
+      "columns": [
+        "id",
+        "event_id",
+        "player",
+        "mainboard",
+        "sideboard"
+      ]
+    },
+    {
+      "name": "standings",
+      "file": "standings.dump.gz",
+      "bytes": 17184,
+      "columns": [
+        "event_id",
+        "rank",
+        "player",
+        "record",
+        "points",
+        "omwp",
+        "gwp",
+        "owp"
+      ]
+    },
+    {
+      "name": "players",
+      "file": "players.dump.gz",
+      "bytes": 6446,
+      "columns": [
+        "id",
+        "name"
+      ]
+    },
     {
       "name": "sets",
       "file": "sets.dump.gz",
@@ -30,7 +109,7 @@
     {
       "name": "cards",
       "file": "cards.dump.gz",
-      "bytes": 52405,
+      "bytes": 50005,
       "columns": [
         "id",
         "oracle_id",
@@ -76,7 +155,7 @@
     {
       "name": "products",
       "file": "products.dump.gz",
-      "bytes": 2030,
+      "bytes": 1709,
       "columns": [
         "id",
         "set_code",
@@ -93,7 +172,7 @@
     {
       "name": "card_catalog_variants",
       "file": "card_catalog_variants.dump.gz",
-      "bytes": 9236,
+      "bytes": 7691,
       "columns": [
         "catalog_id",
         "card_id",
@@ -177,7 +256,7 @@
     {
       "name": "card_legalities",
       "file": "card_legalities.dump.gz",
-      "bytes": 3068,
+      "bytes": 3070,
       "columns": [
         "oracle_id",
         "format_code",
@@ -185,85 +264,6 @@
         "source_rule_set_id",
         "first_seen_at",
         "last_seen_at"
-      ]
-    },
-    {
-      "name": "archetypes",
-      "file": "archetypes.dump.gz",
-      "bytes": 20,
-      "columns": [
-        "id",
-        "deck_id",
-        "name",
-        "archetype",
-        "archetype_id",
-        "provider"
-      ]
-    },
-    {
-      "name": "events",
-      "file": "events.dump.gz",
-      "bytes": 1087,
-      "columns": [
-        "id",
-        "name",
-        "date",
-        "format",
-        "kind",
-        "rounds",
-        "players"
-      ]
-    },
-    {
-      "name": "matches",
-      "file": "matches.dump.gz",
-      "bytes": 20,
-      "columns": [
-        "id",
-        "event_id",
-        "round",
-        "player",
-        "opponent",
-        "record",
-        "result",
-        "isbye",
-        "games"
-      ]
-    },
-    {
-      "name": "decks",
-      "file": "decks.dump.gz",
-      "bytes": 105695,
-      "columns": [
-        "id",
-        "event_id",
-        "player",
-        "mainboard",
-        "sideboard"
-      ]
-    },
-    {
-      "name": "standings",
-      "file": "standings.dump.gz",
-      "bytes": 17184,
-      "columns": [
-        "event_id",
-        "rank",
-        "player",
-        "record",
-        "points",
-        "omwp",
-        "gwp",
-        "owp"
-      ]
-    },
-    {
-      "name": "players",
-      "file": "players.dump.gz",
-      "bytes": 6446,
-      "columns": [
-        "id",
-        "name"
       ]
     }
   ]
