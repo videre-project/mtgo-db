@@ -58704,6 +58704,136 @@
           ]
         }
       ]
+    },
+    {
+      "month": "2026-09",
+      "commit": "93797a3fa40a212002c9807310705fabd04a493d",
+      "profiles": [
+        "events",
+        "prices"
+      ],
+      "tables": [
+        {
+          "name": "events",
+          "file": "events.dump.gz",
+          "bytes": 3992,
+          "columns": [
+            "id",
+            "name",
+            "date",
+            "format",
+            "kind",
+            "rounds",
+            "players"
+          ]
+        },
+        {
+          "name": "matches",
+          "file": "matches.dump.gz",
+          "bytes": 1144975,
+          "columns": [
+            "id",
+            "event_id",
+            "round",
+            "player",
+            "opponent",
+            "record",
+            "result",
+            "isbye",
+            "games"
+          ]
+        },
+        {
+          "name": "decks",
+          "file": "decks.dump.gz",
+          "bytes": 2076678,
+          "columns": [
+            "id",
+            "event_id",
+            "player",
+            "mainboard",
+            "sideboard"
+          ]
+        },
+        {
+          "name": "standings",
+          "file": "standings.dump.gz",
+          "bytes": 204494,
+          "columns": [
+            "event_id",
+            "rank",
+            "player",
+            "record",
+            "points",
+            "omwp",
+            "gwp",
+            "owp"
+          ]
+        },
+        {
+          "name": "archetypes",
+          "file": "archetypes.dump.gz",
+          "bytes": 117115,
+          "columns": [
+            "id",
+            "deck_id",
+            "name",
+            "archetype",
+            "archetype_id",
+            "provider"
+          ]
+        },
+        {
+          "name": "players",
+          "file": "players.dump.gz",
+          "bytes": 42346,
+          "columns": [
+            "id",
+            "name"
+          ]
+        },
+        {
+          "name": "catalog_items",
+          "file": "catalog_items.dump.gz",
+          "bytes": 427157,
+          "columns": [
+            "catalog_id",
+            "kind",
+            "first_seen_at",
+            "last_seen_at"
+          ]
+        },
+        {
+          "name": "catalog_price_definitions",
+          "file": "catalog_price_definitions.dump.gz",
+          "bytes": 1990115,
+          "columns": [
+            "source",
+            "catalog_id",
+            "source_name",
+            "source_cardset",
+            "source_rarity",
+            "source_version",
+            "source_foil",
+            "first_seen_at",
+            "last_seen_at",
+            "raw"
+          ]
+        },
+        {
+          "name": "catalog_price_history",
+          "file": "catalog_price_history.dump.gz",
+          "bytes": 9768769,
+          "columns": [
+            "source",
+            "price_date",
+            "catalog_id",
+            "sell_price",
+            "first_seen_at",
+            "last_seen_at"
+          ]
+        }
+      ]
     }
   ]
 }
