@@ -1,6 +1,6 @@
 {
   "month": "2022-10",
-  "generated_at": "2026-09-02T09:56:43.101Z",
+  "generated_at": "2026-11-01T23:38:21.938Z",
   "source": "postgres-replica-prod",
   "format": "csv",
   "compression": 9,
@@ -12,19 +12,6 @@
   "price_count": 0,
   "cards_count": 1,
   "tables": [
-    {
-      "name": "archetypes",
-      "file": "archetypes.dump.gz",
-      "bytes": 565,
-      "columns": [
-        "id",
-        "deck_id",
-        "name",
-        "archetype",
-        "archetype_id",
-        "provider"
-      ]
-    },
     {
       "name": "events",
       "file": "events.dump.gz",
@@ -70,7 +57,7 @@
     {
       "name": "standings",
       "file": "standings.dump.gz",
-      "bytes": 108932,
+      "bytes": 108448,
       "columns": [
         "event_id",
         "rank",
@@ -80,6 +67,19 @@
         "omwp",
         "gwp",
         "owp"
+      ]
+    },
+    {
+      "name": "archetypes",
+      "file": "archetypes.dump.gz",
+      "bytes": 565,
+      "columns": [
+        "id",
+        "deck_id",
+        "name",
+        "archetype",
+        "archetype_id",
+        "provider"
       ]
     },
     {
