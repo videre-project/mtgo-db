@@ -1,71 +1,17 @@
 {
   "month": "2024-05",
-  "generated_at": "2026-07-12T21:19:33.484Z",
+  "generated_at": "2026-11-01T23:42:39.596Z",
   "source": "postgres-replica-prod",
   "format": "csv",
   "compression": 9,
   "profiles": [
-    "prices",
-    "events"
+    "events",
+    "prices"
   ],
   "event_count": 498,
   "price_count": 2526913,
   "cards_count": 0,
   "tables": [
-    {
-      "name": "catalog_items",
-      "file": "catalog_items.dump.gz",
-      "bytes": 403660,
-      "columns": [
-        "catalog_id",
-        "kind",
-        "first_seen_at",
-        "last_seen_at"
-      ]
-    },
-    {
-      "name": "catalog_price_definitions",
-      "file": "catalog_price_definitions.dump.gz",
-      "bytes": 1879867,
-      "columns": [
-        "source",
-        "catalog_id",
-        "source_name",
-        "source_cardset",
-        "source_rarity",
-        "source_version",
-        "source_foil",
-        "first_seen_at",
-        "last_seen_at",
-        "raw"
-      ]
-    },
-    {
-      "name": "catalog_price_history",
-      "file": "catalog_price_history.dump.gz",
-      "bytes": 8839661,
-      "columns": [
-        "source",
-        "price_date",
-        "catalog_id",
-        "sell_price",
-        "first_seen_at",
-        "last_seen_at"
-      ]
-    },
-    {
-      "name": "archetypes",
-      "file": "archetypes.dump.gz",
-      "bytes": 138741,
-      "columns": [
-        "id",
-        "deck_id",
-        "name",
-        "archetype",
-        "archetype_id",
-        "provider"
-      ]
-    },
     {
       "name": "events",
       "file": "events.dump.gz",
@@ -83,7 +29,7 @@
     {
       "name": "matches",
       "file": "matches.dump.gz",
-      "bytes": 1322588,
+      "bytes": 1321780,
       "columns": [
         "id",
         "event_id",
@@ -111,7 +57,7 @@
     {
       "name": "standings",
       "file": "standings.dump.gz",
-      "bytes": 196752,
+      "bytes": 196679,
       "columns": [
         "event_id",
         "rank",
@@ -124,12 +70,66 @@
       ]
     },
     {
+      "name": "archetypes",
+      "file": "archetypes.dump.gz",
+      "bytes": 138741,
+      "columns": [
+        "id",
+        "deck_id",
+        "name",
+        "archetype",
+        "archetype_id",
+        "provider"
+      ]
+    },
+    {
       "name": "players",
       "file": "players.dump.gz",
       "bytes": 41582,
       "columns": [
         "id",
         "name"
+      ]
+    },
+    {
+      "name": "catalog_items",
+      "file": "catalog_items.dump.gz",
+      "bytes": 430823,
+      "columns": [
+        "catalog_id",
+        "kind",
+        "first_seen_at",
+        "last_seen_at"
+      ]
+    },
+    {
+      "name": "catalog_price_definitions",
+      "file": "catalog_price_definitions.dump.gz",
+      "bytes": 2031609,
+      "columns": [
+        "source",
+        "catalog_id",
+        "source_name",
+        "source_cardset",
+        "source_rarity",
+        "source_version",
+        "source_foil",
+        "first_seen_at",
+        "last_seen_at",
+        "raw"
+      ]
+    },
+    {
+      "name": "catalog_price_history",
+      "file": "catalog_price_history.dump.gz",
+      "bytes": 8839830,
+      "columns": [
+        "source",
+        "price_date",
+        "catalog_id",
+        "sell_price",
+        "first_seen_at",
+        "last_seen_at"
       ]
     }
   ]
