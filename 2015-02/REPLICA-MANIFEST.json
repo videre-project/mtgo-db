@@ -1,6 +1,6 @@
 {
   "month": "2015-02",
-  "generated_at": "2026-07-12T21:18:09.954Z",
+  "generated_at": "2026-11-01T23:35:20.196Z",
   "source": "postgres-replica-prod",
   "format": "csv",
   "compression": 9,
@@ -56,7 +56,7 @@
     {
       "name": "standings",
       "file": "standings.dump.gz",
-      "bytes": 11135,
+      "bytes": 11199,
       "columns": [
         "event_id",
         "rank",
@@ -66,15 +66,6 @@
         "omwp",
         "gwp",
         "owp"
-      ]
-    },
-    {
-      "name": "players",
-      "file": "players.dump.gz",
-      "bytes": 10065,
-      "columns": [
-        "id",
-        "name"
       ]
     },
     {
@@ -88,6 +79,15 @@
         "archetype",
         "archetype_id",
         "provider"
+      ]
+    },
+    {
+      "name": "players",
+      "file": "players.dump.gz",
+      "bytes": 10065,
+      "columns": [
+        "id",
+        "name"
       ]
     }
   ]
