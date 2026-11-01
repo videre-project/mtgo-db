@@ -1,6 +1,6 @@
 {
   "month": "2023-07",
-  "generated_at": "2026-09-02T09:57:10.640Z",
+  "generated_at": "2026-11-01T23:40:04.526Z",
   "source": "postgres-replica-prod",
   "format": "csv",
   "compression": 9,
@@ -13,19 +13,6 @@
   "price_count": 2277018,
   "cards_count": 1,
   "tables": [
-    {
-      "name": "archetypes",
-      "file": "archetypes.dump.gz",
-      "bytes": 10063,
-      "columns": [
-        "id",
-        "deck_id",
-        "name",
-        "archetype",
-        "archetype_id",
-        "provider"
-      ]
-    },
     {
       "name": "events",
       "file": "events.dump.gz",
@@ -71,7 +58,7 @@
     {
       "name": "standings",
       "file": "standings.dump.gz",
-      "bytes": 137795,
+      "bytes": 137338,
       "columns": [
         "event_id",
         "rank",
@@ -81,6 +68,19 @@
         "omwp",
         "gwp",
         "owp"
+      ]
+    },
+    {
+      "name": "archetypes",
+      "file": "archetypes.dump.gz",
+      "bytes": 10063,
+      "columns": [
+        "id",
+        "deck_id",
+        "name",
+        "archetype",
+        "archetype_id",
+        "provider"
       ]
     },
     {
@@ -95,7 +95,7 @@
     {
       "name": "catalog_items",
       "file": "catalog_items.dump.gz",
-      "bytes": 403660,
+      "bytes": 430823,
       "columns": [
         "catalog_id",
         "kind",
@@ -106,7 +106,7 @@
     {
       "name": "catalog_price_definitions",
       "file": "catalog_price_definitions.dump.gz",
-      "bytes": 1879867,
+      "bytes": 2031609,
       "columns": [
         "source",
         "catalog_id",
@@ -123,7 +123,7 @@
     {
       "name": "catalog_price_history",
       "file": "catalog_price_history.dump.gz",
-      "bytes": 8105470,
+      "bytes": 8105514,
       "columns": [
         "source",
         "price_date",
