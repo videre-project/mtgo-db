@@ -1,6 +1,6 @@
 {
   "month": "2026-09",
-  "generated_at": "2026-10-01T18:38:21.287Z",
+  "generated_at": "2026-11-01T23:49:54.182Z",
   "source": "postgres-replica-prod",
   "format": "csv",
   "compression": 9,
@@ -29,7 +29,7 @@
     {
       "name": "matches",
       "file": "matches.dump.gz",
-      "bytes": 1144975,
+      "bytes": 1145848,
       "columns": [
         "id",
         "event_id",
@@ -94,7 +94,7 @@
     {
       "name": "catalog_items",
       "file": "catalog_items.dump.gz",
-      "bytes": 427157,
+      "bytes": 430823,
       "columns": [
         "catalog_id",
         "kind",
@@ -105,7 +105,7 @@
     {
       "name": "catalog_price_definitions",
       "file": "catalog_price_definitions.dump.gz",
-      "bytes": 1990115,
+      "bytes": 2031609,
       "columns": [
         "source",
         "catalog_id",
