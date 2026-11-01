@@ -1,12 +1,12 @@
 {
   "month": "2026-01",
-  "generated_at": "2026-09-02T09:58:57.370Z",
+  "generated_at": "2026-11-01T23:47:50.661Z",
   "source": "postgres-replica-prod",
   "format": "csv",
   "compression": 9,
   "profiles": [
-    "prices",
     "events",
+    "prices",
     "cards"
   ],
   "event_count": 233,
@@ -30,7 +30,7 @@
     {
       "name": "matches",
       "file": "matches.dump.gz",
-      "bytes": 722243,
+      "bytes": 722461,
       "columns": [
         "id",
         "event_id",
@@ -58,7 +58,7 @@
     {
       "name": "standings",
       "file": "standings.dump.gz",
-      "bytes": 112390,
+      "bytes": 111944,
       "columns": [
         "event_id",
         "rank",
@@ -68,6 +68,19 @@
         "omwp",
         "gwp",
         "owp"
+      ]
+    },
+    {
+      "name": "archetypes",
+      "file": "archetypes.dump.gz",
+      "bytes": 39354,
+      "columns": [
+        "id",
+        "deck_id",
+        "name",
+        "archetype",
+        "archetype_id",
+        "provider"
       ]
     },
     {
@@ -82,7 +95,7 @@
     {
       "name": "catalog_items",
       "file": "catalog_items.dump.gz",
-      "bytes": 403660,
+      "bytes": 430823,
       "columns": [
         "catalog_id",
         "kind",
@@ -93,7 +106,7 @@
     {
       "name": "catalog_price_definitions",
       "file": "catalog_price_definitions.dump.gz",
-      "bytes": 1879867,
+      "bytes": 2031609,
       "columns": [
         "source",
         "catalog_id",
@@ -110,7 +123,7 @@
     {
       "name": "catalog_price_history",
       "file": "catalog_price_history.dump.gz",
-      "bytes": 10854933,
+      "bytes": 10858380,
       "columns": [
         "source",
         "price_date",
@@ -118,19 +131,6 @@
         "sell_price",
         "first_seen_at",
         "last_seen_at"
-      ]
-    },
-    {
-      "name": "archetypes",
-      "file": "archetypes.dump.gz",
-      "bytes": 39354,
-      "columns": [
-        "id",
-        "deck_id",
-        "name",
-        "archetype",
-        "archetype_id",
-        "provider"
       ]
     },
     {
