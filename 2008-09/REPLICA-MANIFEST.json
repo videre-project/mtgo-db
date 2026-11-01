@@ -1,6 +1,6 @@
 {
   "month": "2008-09",
-  "generated_at": "2026-09-02T09:52:34.865Z",
+  "generated_at": "2026-11-01T23:33:11.941Z",
   "source": "postgres-replica-prod",
   "format": "csv",
   "compression": 9,
@@ -12,19 +12,6 @@
   "price_count": 0,
   "cards_count": 1,
   "tables": [
-    {
-      "name": "archetypes",
-      "file": "archetypes.dump.gz",
-      "bytes": 20,
-      "columns": [
-        "id",
-        "deck_id",
-        "name",
-        "archetype",
-        "archetype_id",
-        "provider"
-      ]
-    },
     {
       "name": "events",
       "file": "events.dump.gz",
@@ -80,6 +67,19 @@
         "omwp",
         "gwp",
         "owp"
+      ]
+    },
+    {
+      "name": "archetypes",
+      "file": "archetypes.dump.gz",
+      "bytes": 20,
+      "columns": [
+        "id",
+        "deck_id",
+        "name",
+        "archetype",
+        "archetype_id",
+        "provider"
       ]
     },
     {
