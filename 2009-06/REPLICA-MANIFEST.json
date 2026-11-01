@@ -1,6 +1,6 @@
 {
   "month": "2009-06",
-  "generated_at": "2026-07-12T21:17:35.291Z",
+  "generated_at": "2026-11-01T23:33:26.796Z",
   "source": "postgres-replica-prod",
   "format": "csv",
   "compression": 9,
@@ -69,15 +69,6 @@
       ]
     },
     {
-      "name": "players",
-      "file": "players.dump.gz",
-      "bytes": 6948,
-      "columns": [
-        "id",
-        "name"
-      ]
-    },
-    {
       "name": "archetypes",
       "file": "archetypes.dump.gz",
       "bytes": 20,
@@ -88,6 +79,15 @@
         "archetype",
         "archetype_id",
         "provider"
+      ]
+    },
+    {
+      "name": "players",
+      "file": "players.dump.gz",
+      "bytes": 6948,
+      "columns": [
+        "id",
+        "name"
       ]
     }
   ]
