@@ -1,12 +1,12 @@
 {
   "month": "2025-12",
-  "generated_at": "2026-07-12T21:20:09.683Z",
+  "generated_at": "2026-11-01T23:47:35.861Z",
   "source": "postgres-replica-prod",
   "format": "csv",
   "compression": 9,
   "profiles": [
-    "prices",
-    "events"
+    "events",
+    "prices"
   ],
   "event_count": 187,
   "price_count": 3043420,
@@ -29,7 +29,7 @@
     {
       "name": "matches",
       "file": "matches.dump.gz",
-      "bytes": 383925,
+      "bytes": 383656,
       "columns": [
         "id",
         "event_id",
@@ -57,7 +57,7 @@
     {
       "name": "standings",
       "file": "standings.dump.gz",
-      "bytes": 69479,
+      "bytes": 68756,
       "columns": [
         "event_id",
         "rank",
@@ -67,6 +67,19 @@
         "omwp",
         "gwp",
         "owp"
+      ]
+    },
+    {
+      "name": "archetypes",
+      "file": "archetypes.dump.gz",
+      "bytes": 34531,
+      "columns": [
+        "id",
+        "deck_id",
+        "name",
+        "archetype",
+        "archetype_id",
+        "provider"
       ]
     },
     {
@@ -81,7 +94,7 @@
     {
       "name": "catalog_items",
       "file": "catalog_items.dump.gz",
-      "bytes": 403660,
+      "bytes": 430823,
       "columns": [
         "catalog_id",
         "kind",
@@ -92,7 +105,7 @@
     {
       "name": "catalog_price_definitions",
       "file": "catalog_price_definitions.dump.gz",
-      "bytes": 1879867,
+      "bytes": 2031609,
       "columns": [
         "source",
         "catalog_id",
@@ -109,7 +122,7 @@
     {
       "name": "catalog_price_history",
       "file": "catalog_price_history.dump.gz",
-      "bytes": 10780727,
+      "bytes": 10782059,
       "columns": [
         "source",
         "price_date",
@@ -117,19 +130,6 @@
         "sell_price",
         "first_seen_at",
         "last_seen_at"
-      ]
-    },
-    {
-      "name": "archetypes",
-      "file": "archetypes.dump.gz",
-      "bytes": 34531,
-      "columns": [
-        "id",
-        "deck_id",
-        "name",
-        "archetype",
-        "archetype_id",
-        "provider"
       ]
     }
   ]
