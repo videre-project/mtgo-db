@@ -1,6 +1,6 @@
 {
   "month": "2015-06",
-  "generated_at": "2026-07-12T21:18:11.980Z",
+  "generated_at": "2026-11-01T23:35:25.743Z",
   "source": "postgres-replica-prod",
   "format": "csv",
   "compression": 9,
@@ -56,7 +56,7 @@
     {
       "name": "standings",
       "file": "standings.dump.gz",
-      "bytes": 21138,
+      "bytes": 21145,
       "columns": [
         "event_id",
         "rank",
@@ -69,18 +69,9 @@
       ]
     },
     {
-      "name": "players",
-      "file": "players.dump.gz",
-      "bytes": 17563,
-      "columns": [
-        "id",
-        "name"
-      ]
-    },
-    {
       "name": "archetypes",
       "file": "archetypes.dump.gz",
-      "bytes": 6162,
+      "bytes": 6167,
       "columns": [
         "id",
         "deck_id",
@@ -88,6 +79,15 @@
         "archetype",
         "archetype_id",
         "provider"
+      ]
+    },
+    {
+      "name": "players",
+      "file": "players.dump.gz",
+      "bytes": 17563,
+      "columns": [
+        "id",
+        "name"
       ]
     }
   ]
